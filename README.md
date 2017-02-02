@@ -6,6 +6,6 @@ Custom Javafx GUI design for a company called Design Quest for inputting data in
 
 This Gif showcases some of the features of the program
 
-## Excel data input was done with the Apache POI API
+## Excel data input was done with Apache POI
 
 [Apache POI] (https://poi.apache.org)

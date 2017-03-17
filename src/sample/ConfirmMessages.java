@@ -18,13 +18,16 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import java.net.URL;
 
 class ConfirmMessages {
 
-    private static boolean answer; /* Variable for confirming if the program has been closed, used to store true if the program will be closed and false if the program won't be closed! */
+    private boolean answer; /* Variable for confirming if the program has been closed, used to store true if the program will be closed and false if the program won't be closed! */
 
     /* Method to display when a error has occurred, is the default popup window for every error! */
     public void infoEnteredError(String title, String message, String example) {
+
+        URL warningImagePath = this.getClass().getResource("/sample/CustomerFiles/Images/Warning.png");
 
         Stage errorWindow = new Stage();
 
@@ -34,7 +37,7 @@ class ConfirmMessages {
         errorWindow.setMinHeight(150);
 
         /* Setup for items error icon! */
-        ImageView warning = new ImageView(new Image("file:///Users/matthewashley/Documents/IdeaProjects/Quest Input/Customer Files/Warning.png"));
+        ImageView warning = new ImageView(new Image(String.valueOf(warningImagePath)));
         warning.setFitHeight(100);
         warning.setFitWidth(100);
 
@@ -85,7 +88,7 @@ class ConfirmMessages {
     }
 
     /* Method for close program acknowledge popup window! */
-    public static boolean display() {
+    public boolean display() {
 
         Stage messageWindow = new Stage();
 
@@ -142,7 +145,10 @@ class ConfirmMessages {
         top.setMinHeight(25);
 
         /* Setup for the Left of the BorderPane! */
-        ImageView warning = new ImageView(new Image("file:///Users/matthewashley/Documents/IdeaProjects/Quest Input/Customer Files/Warning.png"));
+
+        URL displayWarningImagePath = this.getClass().getResource("/sample/CustomerFiles/Images/Warning.png");
+
+        ImageView warning = new ImageView(new Image(String.valueOf(displayWarningImagePath)));
         warning.setFitHeight(100);
         warning.setFitWidth(100);
 
@@ -170,4 +176,4 @@ class ConfirmMessages {
 
 
 
-}
+} /* Closing bracket for ConfirmMessages class! */

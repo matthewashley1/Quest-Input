@@ -5,6 +5,7 @@ package sample;
  */
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -19,10 +20,16 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.net.URL;
+
 public class Main extends Application {
 
     private Scene scene1;
     private Stage window;
+
+    private final ConfirmMessages messages = new ConfirmMessages(); /* Initializer for ConfirmMessages class! */
+
+    private boolean closeProgram; /* Variable for checking if the program is going to be closed! */
 
     /* Initializer for DisplayWindows class! */
     private final DisplayWindows display = new DisplayWindows();
@@ -35,13 +42,17 @@ public class Main extends Application {
 
         window = primaryStage;
 
+        URL logoImagePath = this.getClass().getResource("/sample/CustomerFiles/Images/image001.png");
+        URL estimateButtonImagePath = this.getClass().getResource("/sample/CustomerFiles/Images/Quote.png");
+        URL invoiceButtonPath = this.getClass().getResource("/sample/CustomerFiles/Images/Invoice.png");
+
         /* Setup for Design Quest Image on Home Screen! */
-        ImageView logo = new ImageView(new Image("file:///Users/matthewashley/Documents/IdeaProjects/Quest Input/Customer Files/image001.png"));
+        ImageView logo = new ImageView(new Image(String.valueOf(logoImagePath)));
         logo.fitWidthProperty().bind(window.widthProperty());
         logo.setFitHeight(300);
 
         /* Conditions for the Quote button and it's content! */
-        ImageView estimateButtonImage = new ImageView(new Image("file:///Users/matthewashley/Documents/IdeaProjects/Quest Input/Customer Files/Quote.png"));
+        ImageView estimateButtonImage = new ImageView(new Image(String.valueOf(estimateButtonImagePath)));
         estimateButtonImage.setFitHeight(70);
         estimateButtonImage.setFitWidth(70);
 
@@ -56,7 +67,7 @@ public class Main extends Application {
         estimate.setPrefWidth(300);
 
         /* Conditions for the Invoice button and it's content! */
-        ImageView invoiceButton = new ImageView(new Image("file:///Users/matthewashley/Documents/IdeaProjects/Quest Input/Customer Files/Invoice.png"));
+        ImageView invoiceButton = new ImageView(new Image(String.valueOf(invoiceButtonPath)));
         invoiceButton.setFitHeight(70);
         invoiceButton.setFitWidth(70);
 
@@ -85,7 +96,7 @@ public class Main extends Application {
         menuBar.getMenus().addAll(menuInfo);
 
         /* Conditions for Main Scene and content locations! */
-        BorderPane mainScreen = new BorderPane();
+        VBox mainScreen = new VBox();
 
         VBox information = new VBox();
         information.getChildren().addAll(menuBar);
@@ -95,22 +106,25 @@ public class Main extends Application {
 
         HBox input = new HBox();
         input.getChildren().addAll(estimate, invoice);
-        input.setTranslateY(-360);
 
-        mainScreen.setTop(information);
-        mainScreen.setLeft(mainVBox);
-        mainScreen.setBottom(input);
-        //mainScreen.setBottom(company);
-        //mainScreen.setBackground(new Background(new BackgroundFill(Color.DARKGREY, CornerRadii.EMPTY, Insets.EMPTY)));  Sets the background color of the primary Scene!
+        mainScreen.getChildren().addAll(information, mainVBox, input);
+         //mainScreen.setBackground(new Background(new BackgroundFill(Color.DARKGREY, CornerRadii.EMPTY, Insets.EMPTY)));  /* Sets the background color of the primary Scene! */
 
-        scene1 = new Scene(mainScreen, 900, 900);
+        scene1 = new Scene(mainScreen, 900, 700);
 
         /* Starting parameters for primaryStage! */
         window.setScene(scene1);
         window.setTitle("Quest Input");
         window.setOnCloseRequest(e -> {
             e.consume();
-            closeProgram();
+            closeProgram = messages.display();
+
+            if (closeProgram) {
+                window.close();
+                Platform.exit();
+                System.exit(0);
+            }
+
         });
         window.show();
 
@@ -133,13 +147,6 @@ public class Main extends Application {
 
         });
 
-    }
-
-    private void closeProgram() {
-        Boolean answer = ConfirmMessages.display();
-        if(answer) {
-            window.close();
-        }
     }
 
     public static void main(String[] args) {

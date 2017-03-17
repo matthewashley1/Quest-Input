@@ -20,9 +20,9 @@ class ExcelEditing {
 
         try {
 
-            FileInputStream estimateFile = new FileInputStream("/Users/matthewashley/Documents/IdeaProjects/Quest Input/Customer Files/ESTIMATE XL.xlsx");
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream("sample/CustomerFiles/Excel/EstimateXL.xlsx");
 
-            XSSFWorkbook estimateWorkbook = new XSSFWorkbook(estimateFile);
+            XSSFWorkbook estimateWorkbook = new XSSFWorkbook(inputStream);
 
             XSSFSheet estimateSheet = estimateWorkbook.getSheet("Estimate");
 
@@ -84,6 +84,13 @@ class ExcelEditing {
                     cellRate1 = estimateSheet.createRow(8).createCell(5);
                 }
                 cellRate1.setCellValue(Double.parseDouble(functionCheck.removeComas(data[7])));
+
+                Cell cellTotal1 = estimateSheet.getRow(8).getCell(6);
+
+                if (cellTotal1 == null) {
+                    cellTotal1 = estimateSheet.createRow(8).createCell(6);
+                }
+                cellTotal1.setCellFormula("F9*E9");
 
             }
 
@@ -240,7 +247,7 @@ class ExcelEditing {
                     cellTotal5 = estimateSheet.createRow(12).createCell(6);
                 }
                 cellTotal5.setCellFormula("F13*E13");
-                
+
             }
 
             if (numberOfItems >= 6) {
@@ -633,7 +640,7 @@ class ExcelEditing {
 
             }
 
-            String fileName = "/Users/matthewashley/Desktop/" + data[2] + " " + ".xlsx";
+            String fileName = System.getProperty("user.home") + "/Desktop/" + data[2] + ".xlsx";
             FileOutputStream output = new FileOutputStream(new File(fileName));
             estimateWorkbook.write(output);
             output.close();
@@ -641,7 +648,7 @@ class ExcelEditing {
         } catch ( IOException e ) {
 
             e.printStackTrace();
-            errorCheck.infoEnteredError("File Creation Error", "Estimate file failed to create", "Make sure a file with the same name doesn't already exist");
+            errorCheck.infoEnteredError("File Creation Error", "Estimate file failed to create", e.getMessage());
 
         }
     }

@@ -13,7 +13,6 @@ class Functions {
     private boolean noDecimalCheck; /* Variable for storing if a number doesn't have a decimal*/
     private boolean invoiceCheck; /* Variable for storing if the invoice number is in the correct format! */
 
-
     /* Method to check that every character entered by the user is correct when user input is a number! */
     public boolean checkNumberInput(String check) {
 

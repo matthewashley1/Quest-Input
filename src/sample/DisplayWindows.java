@@ -4,6 +4,7 @@ package sample;
  * Created by Matthew Ashley on 12/29/16.
  */
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,13 +15,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import java.text.DecimalFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Locale;
+import java.util.*;
 
 class DisplayWindows {
 
@@ -28,6 +29,8 @@ class DisplayWindows {
             bottomLeft;
 
     private VBox itemsVBox; /* VBox that holds all HBox`s for each item! */
+    private VBox estimateLayout; /* VBox that holds all elements for Stage! */
+    private VBox errorMessages; /* VBox used for displaying error messages! */
 
     private TextField item1Text, item2Text, item3Text, item4Text, item5Text, item6Text, item7Text, item8Text, item9Text, item10Text, item11Text, item12Text, item13Text, item14Text, item15Text,
             description1Text, description2Text, description3Text, description4Text, description5Text, description6Text, description7Text, description8Text, description9Text, description10Text, description11Text, description12Text, description13Text, description14Text, description15Text,
@@ -38,13 +41,14 @@ class DisplayWindows {
     private DatePicker dateText; /* Setup for the Date Picker being used in the Estimate window! */
 
     private Label totalCost; /* Label used for displaying the total cost of each item! */
+    private Label messages; /* Label used for displaying error messages! */
 
     private String enteredDate; /* Variable for the Date Entered, stores the date entered on the estimateWindow! */
     private String costTotalString; /* Variable for the cost total of each item! */
     private String date; /* Variable for storing the current date! */
     private String dateDay; /* Variable for storing the current day of the month when the current day is below 10! */
 
-    private final String[] itemsData = new String [64]; /* Array for storing user input for items data! */
+    private final String[] itemsData = new String [65]; /* Array for storing user input for items data! */
 
     private Double qty1, qty2, qty3, qty4, qty5, qty6, qty7, qty8, qty9, qty10, qty11, qty12, qty13, qty14, qty15,
             rate1, rate2, rate3, rate4, rate5, rate6, rate7, rate8, rate9, rate10, rate11, rate12, rate13, rate14, rate15;
@@ -67,7 +71,7 @@ class DisplayWindows {
     private final ExcelEditing inputWorkbookData = new ExcelEditing(); /* Initializer for ExcelEditing class! */
     private final DecimalFormat df = new DecimalFormat("0.00"); /* Initializer for DecimalFormat, will format a Double variable to always show two decimal places! */
 
-    /* Method for inputting data into Estimate Excel spreadsheet and PDF file for Design Quest! */
+    /* Method for inputting data into Estimate Excel spreadsheet file for Design Quest! */
     public void inputEstimate() {
 
         itemsDataInit();
@@ -78,7 +82,7 @@ class DisplayWindows {
         estimateWindow.setTitle("Estimate");
 
         /* Setup for items VBox! */
-        itemsVBox = new VBox(8);
+        itemsVBox = new VBox(4);
         itemsVBox.setPadding(new Insets(8));
 
         /* Setup for the Left of the Border Pane! */
@@ -98,7 +102,9 @@ class DisplayWindows {
 
             if (itemQuantityText.getText().isEmpty()) {
 
-                errorCheck.infoEnteredError("Items Error", "Nothing was entered of the items Number", "Example: Must be 15 or less!");
+                messages.setText("Nothing was entered for the items Number");
+
+                //errorCheck.infoEnteredError("Items Error", "Nothing was entered of the items Number", "Example: Must be 15 or less!");
 
             } else {
 
@@ -109,27 +115,35 @@ class DisplayWindows {
                     /* Variable for the items number entered, stores the number entered on the estimateWindow for items! */
                     itemNumber = Integer.parseInt(itemQuantityText.getText());
 
-                    if (itemNumber >= savedItemNumber && itemsGenerated) {
+                    if (itemNumber <= 15) {
 
-                        saveItemData();
+                        if (itemNumber >= savedItemNumber && itemsGenerated) {
+
+                            saveItemData();
+
+                        } else {
+
+                            saveItemData();
+                            deleteItemData(false);
+
+                            if (itemsGenerated) {
+
+                                enterItemsData();
+
+                                /* Will re-calculate the total cost of each item when items number is decreased! */
+                                calculate(true);
+                            }
+                        }
+
+                        if (itemNumber <= 15) {
+
+                            savedItemNumber = itemNumber;
+                        }
 
                     } else {
 
-                        saveItemData();
-                        deleteItemData(false);
+                        errorCheck.infoEnteredError("Items Error","Incorrect item number entered!", "Example: Must be 15 or less!");
 
-                        if (itemsGenerated) {
-
-                            enterItemsData();
-
-                            /* Will re-calculate the total cost of each item when items number is decreased! */
-                            calculate(true);
-                        }
-                    }
-
-                    if (itemNumber <= 15) {
-
-                        savedItemNumber = itemNumber;
                     }
 
                 } else {
@@ -139,14 +153,8 @@ class DisplayWindows {
                 }
             }
 
-            int addedHeight = (itemNumber * 55);
-
             /* Determines when and by how much to expand the estimateWindow Stage to fit the elements in the window! */
-            if (itemNumber >= 9 && itemNumber <= 15) {
-
-                estimateWindow.setWidth(687.0);
-
-            } else if (itemNumber == 0) {
+            if (itemNumber == 0) {
 
                 bottomLeft.getChildren().remove(totalCost);
 
@@ -155,29 +163,12 @@ class DisplayWindows {
                 totalCost.setStyle("-fx-font: 16 arial; -fx-base: #b4ffa3;");
 
                 bottomLeft.getChildren().add(totalCost);
-
-                estimateWindow.setWidth(502.0);
-                estimateWindow.setHeight(337.0);
-
-            } else if (itemNumber > 15) {
-
-                errorCheck.infoEnteredError("Items Error","Incorrect item number entered!", "Example: Must be 15 or less!");
-
-            } else {
-
-                estimateWindow.setWidth(670.0);
             }
 
             if (itemNumber <= 15) {
 
-                estimateWindow.setHeight(337.0 + addedHeight);
                 itemsVBox.getChildren().removeAll(item1HBox, item2HBox, item3HBox, item4HBox, item5HBox, item6HBox, item7HBox, item8HBox, item9HBox, item10HBox, item11HBox, item12HBox, item13HBox, item14HBox, item15HBox);
             }
-
-            /* Centers the estimateWindow on the device screen! */
-            Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
-            estimateWindow.setX((ScreenBounds.getWidth() - estimateWindow.getWidth()) / 2);
-            estimateWindow.setY((ScreenBounds.getHeight() - estimateWindow.getHeight()) / 2);
 
             /* Generates all elements for each item! */
             if (itemNumber >= 1 && itemNumber <= 15) {
@@ -195,7 +186,6 @@ class DisplayWindows {
                 rate1Text.setPrefWidth(75.0);
 
                 item1HBox = new HBox(8);
-                item1HBox.setPadding(new Insets(10));
                 item1HBox.getChildren().addAll(item1Label, item1Text, description1Label, description1Text, qty1Label, qty1Text, rate1Label, rate1Text);
 
                 itemsVBox.getChildren().add(item1HBox);
@@ -216,7 +206,6 @@ class DisplayWindows {
                 rate2Text.setPrefWidth(75.0);
                
                 item2HBox = new HBox(8);
-                item2HBox.setPadding(new Insets(10));
                 item2HBox.getChildren().addAll(item2Label, item2Text, description2Label, description2Text, qty2Label, qty2Text, rate2Label, rate2Text);
 
                 itemsVBox.getChildren().add(item2HBox);
@@ -237,7 +226,6 @@ class DisplayWindows {
                 rate3Text.setPrefWidth(75.0);
                 
                 item3HBox = new HBox(8);
-                item3HBox.setPadding(new Insets(10));
                 item3HBox.getChildren().addAll(item3Label, item3Text, description3Label, description3Text, qty3Label, qty3Text, rate3Label, rate3Text);
 
                 itemsVBox.getChildren().add(item3HBox);
@@ -258,7 +246,6 @@ class DisplayWindows {
                 rate4Text.setPrefWidth(75.0);
                 
                 item4HBox = new HBox(8);
-                item4HBox.setPadding(new Insets(10));
                 item4HBox.getChildren().addAll(item4Label, item4Text, description4Label, description4Text, qty4Label, qty4Text, rate4Label, rate4Text);
 
                 itemsVBox.getChildren().add(item4HBox);
@@ -279,7 +266,6 @@ class DisplayWindows {
                 rate5Text.setPrefWidth(75.0);
                 
                 item5HBox = new HBox(8);
-                item5HBox.setPadding(new Insets(10));
                 item5HBox.getChildren().addAll(item5Label, item5Text, description5Label, description5Text, qty5Label, qty5Text, rate5Label, rate5Text);
 
                 itemsVBox.getChildren().add(item5HBox);
@@ -300,7 +286,6 @@ class DisplayWindows {
                 rate6Text.setPrefWidth(75.0);
                 
                 item6HBox = new HBox(8);
-                item6HBox.setPadding(new Insets(10));
                 item6HBox.getChildren().addAll(item6Label, item6Text, description6Label, description6Text, qty6Label, qty6Text, rate6Label, rate6Text);
 
                 itemsVBox.getChildren().add(item6HBox);
@@ -321,7 +306,6 @@ class DisplayWindows {
                 rate7Text.setPrefWidth(75.0);
                 
                 item7HBox = new HBox(8);
-                item7HBox.setPadding(new Insets(10));
                 item7HBox.getChildren().addAll(item7Label, item7Text, description7Label, description7Text, qty7Label, qty7Text, rate7Label, rate7Text);
 
                 itemsVBox.getChildren().add(item7HBox);
@@ -342,7 +326,6 @@ class DisplayWindows {
                 rate8Text.setPrefWidth(75.0);
                 
                 item8HBox = new HBox(8);
-                item8HBox.setPadding(new Insets(10));
                 item8HBox.getChildren().addAll(item8Label, item8Text, description8Label, description8Text, qty8Label, qty8Text, rate8Label, rate8Text);
 
                 itemsVBox.getChildren().add(item8HBox);
@@ -363,7 +346,6 @@ class DisplayWindows {
                 rate9Text.setPrefWidth(75.0);
                 
                 item9HBox = new HBox(8);
-                item9HBox.setPadding(new Insets(10));
                 item9HBox.getChildren().addAll(item9Label, item9Text, description9Label, description9Text, qty9Label, qty9Text, rate9Label, rate9Text);
 
                 itemsVBox.getChildren().add(item9HBox);
@@ -384,7 +366,6 @@ class DisplayWindows {
                 rate10Text.setPrefWidth(75.0);
                 
                 item10HBox = new HBox(8);
-                item10HBox.setPadding(new Insets(10));
                 item10HBox.getChildren().addAll(item10Label, item10Text, description10Label, description10Text, qty10Label, qty10Text, rate10Label, rate10Text);
 
                 itemsVBox.getChildren().add(item10HBox);
@@ -405,7 +386,6 @@ class DisplayWindows {
                 rate11Text.setPrefWidth(75.0);
                
                 item11HBox = new HBox(8);
-                item11HBox.setPadding(new Insets(10));
                 item11HBox.getChildren().addAll(item11Label, item11Text, description11Label, description11Text, qty11Label, qty11Text, rate11Label, rate11Text);
 
                 itemsVBox.getChildren().add(item11HBox);
@@ -426,7 +406,6 @@ class DisplayWindows {
                 rate12Text.setPrefWidth(75.0);
                 
                 item12HBox = new HBox(8);
-                item12HBox.setPadding(new Insets(10));
                 item12HBox.getChildren().addAll(item12Label, item12Text, description12Label, description12Text, qty12Label, qty12Text, rate12Label, rate12Text);
 
                 itemsVBox.getChildren().add(item12HBox);
@@ -447,7 +426,6 @@ class DisplayWindows {
                 rate13Text.setPrefWidth(75.0);
                
                 item13HBox = new HBox(8);
-                item13HBox.setPadding(new Insets(10));
                 item13HBox.getChildren().addAll(item13Label, item13Text, description13Label, description13Text, qty13Label, qty13Text, rate13Label, rate13Text);
 
                 itemsVBox.getChildren().add(item13HBox);
@@ -468,7 +446,6 @@ class DisplayWindows {
                 rate14Text.setPrefWidth(75.0);
                 
                 item14HBox = new HBox(8);
-                item14HBox.setPadding(new Insets(10));
                 item14HBox.getChildren().addAll(item14Label, item14Text, description14Label, description14Text, qty14Label, qty14Text, rate14Label, rate14Text);
 
                 itemsVBox.getChildren().add(item14HBox);
@@ -489,11 +466,23 @@ class DisplayWindows {
                 rate15Text.setPrefWidth(75.0);
                 
                 item15HBox = new HBox(8);
-                item15HBox.setPadding(new Insets(10));
                 item15HBox.getChildren().addAll(item15Label, item15Text, description15Label, description15Text, qty15Label, qty15Text, rate15Label, rate15Text);
 
                 itemsVBox.getChildren().add(item15HBox);
             }
+
+            /* Changes the Stages width and height to fit the main VBox width and height! */
+            estimateLayout.widthProperty().addListener((observable, oldStageWidth, newStageWidth) -> {
+
+                estimateWindow.setWidth(newStageWidth.doubleValue() + 2.00);
+
+            });
+
+            estimateLayout.heightProperty().addListener((observable, oldStageHeight, newStageHeight) -> {
+
+                estimateWindow.setHeight(newStageHeight.doubleValue() + 24.00);
+
+            });
 
             if (itemsGenerated) {
 
@@ -501,6 +490,12 @@ class DisplayWindows {
             }
 
             itemsGenerated = true;
+
+            /* Centers the estimateWindow on the device screen! */
+            Rectangle2D ScreenBounds = Screen.getPrimary().getVisualBounds();
+            //estimateWindow.setX((ScreenBounds.getWidth() - estimateWindow.getWidth()) / 2);
+            //estimateWindow.setY((ScreenBounds.getHeight() - estimateWindow.getHeight()) / 2);
+
 
         });
 
@@ -565,6 +560,34 @@ class DisplayWindows {
         nameAddressHBox.getChildren().addAll(nameAddressLabel, nameAddressText);
         nameAddressHBox.setAlignment(Pos.TOP_LEFT);
 
+        /* Setup for error message label! */
+        messages = new Label();
+        messages.setTextFill(Color.web("#f73636"));
+        messages.setFont(Font.font("Arial", 14));
+        messages.textProperty().addListener((observable, oldValue, newValue) -> {
+
+            if (newValue != "") {
+
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        Platform.runLater(() -> resetErrorMessage());
+                    }
+                }, 7000);
+            }
+        });
+
+        messages.setOnMouseEntered(event -> {
+            messages.setScaleX(1.20);
+            messages.setScaleY(1.20);
+        });
+
+        messages.setOnMouseExited(event -> {
+            messages.setScaleX(1.00);
+            messages.setScaleY(1.00);
+        });
+
         /* Conditions for the Close button to close the Estimate window! */
         Button closeButton = new Button("Cancel");
         closeButton.setOnAction((ActionEvent e) -> {
@@ -616,15 +639,22 @@ class DisplayWindows {
         calCost.setStyle("-fx-font: 13 arial; -fx-base: #b4ffa3;");
 
         totalCost = new Label("$00.00");
-        totalCost.setStyle("-fx-font: 16 arial; -fx-base: #b4ffa3;");
+        totalCost.setFont(Font.font("Arial", 16));
 
         Label total = new Label("Cost Total:");
-        total.setStyle("-fx-font: 16 arial; -fx-base: #b4ffa3;");
+        total.setFont(Font.font("Arial", 16));
 
-        /* Setup for Left of the BorderPane! */
+        /* Setup for the top portion of the estimateLayout VBox! */
         VBox dataInput = new VBox(8);
-        dataInput.setPadding(new Insets(10));
+        dataInput.setPadding(new Insets(4));
         dataInput.getChildren().addAll(dqProjectHBox, dateHBox, invoiceHBox, nameAddressHBox, itemsVBox);
+
+        /* Setup for the middle portion of the estimateLayout VBox that displays error messages! */
+        errorMessages = new VBox(8);
+        errorMessages.setPadding(new Insets(4));
+        errorMessages.setAlignment(Pos.BOTTOM_CENTER);
+        errorMessages.getChildren().add(messages);
+        errorMessages.setStyle("-fx-font: 14 arial; -fx-base: #f73636;");
 
         /* Setup for the Left Bottom of the bottom HBox! */
         bottomLeft = new HBox(8);
@@ -645,19 +675,19 @@ class DisplayWindows {
         HBox bottom = new HBox(8);
         bottom.getChildren().addAll(bottomLeft, bottomRight);
 
-        /* Setup for the estimateLayout BorderPane and estimateScrollPane ScrollPane! */
-        BorderPane estimateLayout = new BorderPane();
+        /* Setup for the estimateLayout VBox and estimateScrollPane ScrollPane! */
+        estimateLayout = new VBox(0);
 
-        estimateLayout.setLeft(dataInput);
-        estimateLayout.setBottom(bottom);
+        estimateLayout.getChildren().addAll(dataInput, errorMessages, bottom);
 
         ScrollPane estimateScrollPane = new ScrollPane();
         estimateScrollPane.setContent(estimateLayout);
 
         Scene estimateScene = new Scene(estimateScrollPane);
+
         estimateWindow.setScene(estimateScene);
         estimateWindow.centerOnScreen();
-        estimateWindow.setResizable(false);
+        estimateWindow.setResizable(true);
         estimateWindow.showAndWait();
 
     }
@@ -1044,7 +1074,6 @@ class DisplayWindows {
                 errorCheck.infoEnteredError("Number Format Error", "Number for DQ Project Number was entered wrong", "Example: 481532");
 
                 checkDataInput = false;
-
             }
         }
 
@@ -1057,7 +1086,6 @@ class DisplayWindows {
                 errorCheck.infoEnteredError("Number Format Error", "Number for Invoice Number was entered wrong", "Example: 17-0128-01");
 
                 checkDataInput = false;
-
             }
         }
 
@@ -2348,6 +2376,12 @@ class DisplayWindows {
             itemsData[x] = "";
 
         }
+    }
+
+    private void resetErrorMessage() {
+
+        messages.setText("");
+
     }
 
 

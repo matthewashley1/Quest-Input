@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>gui</headerType>
+  <jar>/Users/matthewashley/Desktop/QuestInput.jar</jar>
+  <outfile>/Users/matthewashley/Desktop/QuestInput.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>normal</priority>
+  <downloadUrl>http://java.com/download</downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon>/Users/matthewashley/Documents/IdeaProjects/QuestInput/Builds/Ariil-Alphabet-Letter-Q.ico</icon>
+  <jre>
+    <path></path>
+    <bundledJre64Bit>false</bundledJre64Bit>
+    <bundledJreAsFallback>false</bundledJreAsFallback>
+    <minVersion>1.8.0</minVersion>
+    <maxVersion></maxVersion>
+    <jdkPreference>preferJre</jdkPreference>
+    <runtimeBits>64/32</runtimeBits>
+  </jre>
+  <versionInfo>
+    <fileVersion>0.0.0.3</fileVersion>
+    <txtFileVersion>Vern Tech</txtFileVersion>
+    <fileDescription>Custom form filling program for Design Quest</fileDescription>
+    <copyright>All rights reserved by Vern Tech</copyright>
+    <productVersion>0.0.0.3</productVersion>
+    <txtProductVersion>Vern Tech</txtProductVersion>
+    <productName>Quest Input</productName>
+    <companyName></companyName>
+    <internalName>Quest Input</internalName>
+    <originalFilename>QuestInput.exe</originalFilename>
+    <trademarks></trademarks>
+    <language>ENGLISH_US</language>
+  </versionInfo>
+</launch4jConfig>

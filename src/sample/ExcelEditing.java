@@ -640,6 +640,13 @@ class ExcelEditing {
 
             }
 
+            Cell cellOverallTotal = estimateSheet.getRow(31).getCell(6);
+
+            if (cellOverallTotal == null) {
+                cellOverallTotal = estimateSheet.createRow(31).createCell(6);
+            }
+            cellOverallTotal.setCellFormula("SUM(G9:G31)");
+
             String fileName = System.getProperty("user.home") + "/Desktop/" + data[2] + ".xlsx";
             FileOutputStream output = new FileOutputStream(new File(fileName));
             estimateWorkbook.write(output);

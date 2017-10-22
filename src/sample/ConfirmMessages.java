@@ -11,10 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -22,19 +19,19 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.net.URL;
 
-class ConfirmMessages {
+public class ConfirmMessages {
 
     private boolean answer; /* Variable for confirming if the program has been closed, used to store true if the program will be closed and false if the program won't be closed! */
 
     /* Method to display when a error has occurred, is the default popup window for every error! */
-    public void infoEnteredError(String title, String message, String example) {
+    public void infoEnteredError(String message, String example) {
 
         URL warningImagePath = this.getClass().getResource("/sample/CustomerFiles/Images/Warning.png");
 
         Stage errorWindow = new Stage();
 
         errorWindow.initModality(Modality.APPLICATION_MODAL);
-        errorWindow.setTitle(title);
+        errorWindow.setTitle("File Creation Error");
         errorWindow.setMinWidth(250);
         errorWindow.setMinHeight(150);
 
@@ -90,7 +87,7 @@ class ConfirmMessages {
     }
 
     /* Method for close program acknowledge popup window! */
-    public boolean display() {
+    public boolean display(double primaryStageXPosition, double primaryStageYPosition, double primaryStageWidth, double primaryStageHeight) {
 
         Stage messageWindow = new Stage();
 
@@ -159,7 +156,6 @@ class ConfirmMessages {
 
         /* Setup for the BorderPane and the locations of the different layouts used in the BorderPane! */
         BorderPane layout = new BorderPane();
-
         layout.setBottom(bottom);
         layout.setCenter(center);
         layout.setTop(top);
@@ -170,6 +166,11 @@ class ConfirmMessages {
         messageWindow.setScene(scene);
         messageWindow.centerOnScreen();
         messageWindow.setResizable(false);
+
+        messageWindow.heightProperty().addListener(observable -> messageWindow.setY(((primaryStageHeight - messageWindow.getHeight()) / 2d) + primaryStageYPosition));
+
+        messageWindow.widthProperty().addListener(observable -> messageWindow.setX(((primaryStageWidth - messageWindow.getWidth()) / 2d) + primaryStageXPosition));
+
         messageWindow.showAndWait();
 
         return answer;
@@ -179,19 +180,21 @@ class ConfirmMessages {
     public boolean cancelAcknowledged(String formFilling, double primaryStageXPosition, double primaryStageYPosition, double primaryStageWidth, double primaryStageHeight) {
 
         Stage messageWindow = new Stage();
+        
+        Label question, label;
 
         messageWindow.initModality(Modality.APPLICATION_MODAL);
         messageWindow.setTitle(formFilling);
-
+            
         /* Label for consequences to user! */
-        Label label = new Label();
+        label = new Label();
         label.setText("    All progress will be lost!    ");
         label.setAlignment(Pos.BOTTOM_CENTER);
         label.setTextFill(Color.BLACK);
         label.setFont(Font.font("Arial", FontWeight.SEMI_BOLD, 14));
 
         /* Label for question to user! */
-        Label question = new Label("Are you sure you want to cancel this form?");
+        question = new Label("Are you sure you want to cancel this form?");
         question.setPadding(new Insets(10));
         question.setTextFill(Color.BLACK);
         question.setFont(Font.font("Arial", FontWeight.SEMI_BOLD, 16));
@@ -219,15 +222,6 @@ class ConfirmMessages {
         top.getChildren().add(question);
         top.setMinHeight(35);
 
-        /* Setup for the center of the VBox! */
-        HBox bottom = new HBox(8);
-        bottom.getChildren().addAll(noButton, yesButton);
-        bottom.setAlignment(Pos.BOTTOM_RIGHT);
-        bottom.setMinHeight(65);
-
-        VBox centerRight = new VBox();
-        centerRight.getChildren().addAll(label, bottom);
-
         URL displayWarningImagePath = this.getClass().getResource("/sample/CustomerFiles/Images/Warning.png");
 
         ImageView warning = new ImageView(new Image(String.valueOf(displayWarningImagePath)));
@@ -235,14 +229,22 @@ class ConfirmMessages {
         warning.setFitWidth(100);
 
         HBox center = new HBox(4);
-        center.getChildren().addAll(warning, centerRight);
+        center.getChildren().addAll(warning, label);
         center.setMinHeight(25);
         center.setPadding(new Insets(10));
 
-        /* Setup for the VBox and the locations of the different layouts used in the VBox! */
-        VBox layout = new VBox();
+        /* Setup for the center of the VBox! */
+        HBox bottom = new HBox(8);
+        bottom.setPadding(new Insets(5));
+        bottom.getChildren().addAll(noButton, yesButton);
+        bottom.setAlignment(Pos.BOTTOM_RIGHT);
+        bottom.setMinHeight(65);
 
-        layout.getChildren().addAll(top, center);
+        /* Setup for the BorderPane and the locations of the different layouts used in the BorderPane! */
+        BorderPane layout = new BorderPane();
+        layout.setTop(top);
+        layout.setLeft(center);
+        layout.setBottom(bottom);
         layout.setStyle("-fx-background-color: linear-gradient(from 25% 25% to 100% 100%, #9b9ea3, #ffffff)");
 
         Scene scene = new Scene(layout);

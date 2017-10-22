@@ -16,5 +16,9 @@
     <orderEntry type="library" name="commons-codec-1.10" level="project" />
     <orderEntry type="library" name="commons-logging-1.2" level="project" />
     <orderEntry type="library" name="poi-ooxml-schemas-3.16-beta1" level="project" />
+    <orderEntry type="library" name="TrayNotification" level="project" />
+    <orderEntry type="library" name="sqlite-jdbc-3.19.3" level="project" />
+    <orderEntry type="library" name="controlsfx-8.40.12" level="project" />
+    <orderEntry type="library" name="VTFXcontrols" level="project" />
   </component>
 </module>

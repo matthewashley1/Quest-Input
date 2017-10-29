@@ -4,7 +4,7 @@ Custom Javafx GUI design for a company called Design Quest for inputting data in
 
 ### Demo 
 
-![Demo](http://sotd.us/matthewashley/QuestInput.gif)
+![Demo](http://sotd.us/matthewashley/Quest%20Input.gif)
 
 This Gif showcases some of the features of the program
 

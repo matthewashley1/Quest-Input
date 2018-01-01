@@ -5,9 +5,8 @@ package sample;
  */
 
 import VTFXcontrols.Functions;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.*;
 import java.io.*;
 import java.util.Objects;
 
@@ -18,15 +17,45 @@ public class ExcelEditing {
 
     /* Method for inputting all data entered into the Estimate Excel file! */
     @SuppressWarnings("ConstantConditions")
-    public void estimateExcel(String data[], int estimateNumberOfItems, String fileSavePath) {
+    public void estimateExcel(String data[], int estimateNumberOfItems, String fileSavePath, Boolean check) {
 
         try {
 
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("sample/CustomerFiles/Excel/EstimateXL.xlsx");
 
             XSSFWorkbook estimateWorkbook = new XSSFWorkbook(inputStream);
-
             XSSFSheet estimateSheet = estimateWorkbook.getSheet("Estimate");
+
+            /* Setup for default font for cell styles! */
+            XSSFFont font = estimateWorkbook.createFont();
+            font.setColor(XSSFFont.DEFAULT_FONT_COLOR);
+            font.setFontHeight(11);
+
+            /* Setup for formatting cells to Accounting format! */
+            XSSFCellStyle accountingStyle = estimateWorkbook.createCellStyle();
+            DataFormat accountingFormat = estimateWorkbook.createDataFormat();
+
+            accountingStyle.setDataFormat(accountingFormat.getFormat("_(\"$\"* #,##0.00_);_(\"$\"* \\(#,##0.00\\);_(\"$\"* \"-\"??_);_(@_)"));
+            accountingStyle.setAlignment(HorizontalAlignment.CENTER);
+            accountingStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            accountingStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+            accountingStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+            accountingStyle.setBorderLeft(BorderStyle.THIN);
+            accountingStyle.setBorderRight(BorderStyle.THIN);
+            accountingStyle.setFont(font);
+
+            /* Setup for formatting cells to Number format! */
+            XSSFCellStyle numberStyle = estimateWorkbook.createCellStyle();
+            DataFormat numberFormat = estimateWorkbook.createDataFormat();
+
+            numberStyle.setDataFormat(numberFormat.getFormat("0"));
+            numberStyle.setAlignment(HorizontalAlignment.CENTER);
+            numberStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            numberStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+            numberStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+            numberStyle.setBorderLeft(BorderStyle.THIN);
+            numberStyle.setBorderRight(BorderStyle.THIN);
+            numberStyle.setFont(font);
 
             /* Setup for entering data in existing spreadsheet! */
             Cell cellDQPData = estimateSheet.getRow(1).getCell(0);
@@ -78,22 +107,36 @@ public class ExcelEditing {
                 if (cellQty1 == null) {
                     cellQty1 = estimateSheet.createRow(8).createCell(4);
                 }
-                cellQty1.setCellValue((int)(Double.parseDouble(functions.removeComas(data[7]))));
+
+                if (check) {
+                    cellQty1.setCellStyle(numberStyle);
+                    cellQty1.setCellValue((int) (Double.parseDouble(functions.removeComas(data[7]))));
+                } else {
+                    cellQty1.setCellValue(data[7]);
+                }
 
                 Cell cellRate1 = estimateSheet.getRow(8).getCell(5);
 
                 if (cellRate1 == null) {
                     cellRate1 = estimateSheet.createRow(8).createCell(5);
                 }
-                cellRate1.setCellValue(Double.parseDouble(functions.removeComas(data[8])));
+
+                if (check) {
+                    cellRate1.setCellStyle(accountingStyle);
+                    cellRate1.setCellValue((int) Double.parseDouble(functions.removeComas(data[8])));
+                } else {
+                    cellRate1.setCellValue(data[8]);
+                }
 
                 Cell cellTotal1 = estimateSheet.getRow(8).getCell(6);
 
                 if (cellTotal1 == null) {
                     cellTotal1 = estimateSheet.createRow(8).createCell(6);
                 }
-                cellTotal1.setCellFormula("F9*E9");
 
+                if (check) {
+                    cellTotal1.setCellFormula("F9*E9");
+                }
             }
 
             if (estimateNumberOfItems >= 2) {
@@ -117,22 +160,36 @@ public class ExcelEditing {
                 if (cellQty2 == null) {
                     cellQty2 = estimateSheet.createRow(9).createCell(4);
                 }
-                cellQty2.setCellValue((int)(Double.parseDouble(functions.removeComas(data[11]))));
+
+                if (check) {
+                    cellQty2.setCellStyle(numberStyle);
+                    cellQty2.setCellValue((int) (Double.parseDouble(functions.removeComas(data[11]))));
+                } else {
+                    cellQty2.setCellValue(data[11]);
+                }
 
                 Cell cellRate2 = estimateSheet.getRow(9).getCell(5);
 
                 if (cellRate2 == null) {
                     cellRate2 = estimateSheet.createRow(9).createCell(5);
                 }
-                cellRate2.setCellValue(Double.parseDouble(data[12]));
+
+                if (check) {
+                    cellRate2.setCellStyle(accountingStyle);
+                    cellRate2.setCellValue(Double.parseDouble(functions.removeComas(data[12])));
+                } else {
+                    cellRate2.setCellValue(data[12]);
+                }
 
                 Cell cellTotal2 = estimateSheet.getRow(9).getCell(6);
 
                 if (cellTotal2 == null) {
                     cellTotal2 = estimateSheet.createRow(9).createCell(6);
                 }
-                cellTotal2.setCellFormula("F10*E10");
 
+                if (check) {
+                    cellTotal2.setCellFormula("F10*E10");
+                }
             }
 
             if (estimateNumberOfItems >= 3) {
@@ -156,22 +213,36 @@ public class ExcelEditing {
                 if (cellQty3 == null) {
                     cellQty3 = estimateSheet.createRow(10).createCell(4);
                 }
-                cellQty3.setCellValue((int)(Double.parseDouble(functions.removeComas(data[15]))));
+
+                if (check) {
+                    cellQty3.setCellStyle(numberStyle);
+                    cellQty3.setCellValue((int) (Double.parseDouble(functions.removeComas(data[15]))));
+                } else {
+                    cellQty3.setCellValue(data[15]);
+                }
 
                 Cell cellRate3 = estimateSheet.getRow(10).getCell(5);
 
                 if (cellRate3 == null) {
                     cellRate3 = estimateSheet.createRow(10).createCell(5);
                 }
-                cellRate3.setCellValue(Double.parseDouble(data[16]));
+
+                if (check) {
+                    cellRate3.setCellStyle(accountingStyle);
+                    cellRate3.setCellValue(Double.parseDouble(functions.removeComas(data[16])));
+                } else {
+                    cellRate3.setCellValue(data[16]);
+                }
 
                 Cell cellTotal3 = estimateSheet.getRow(10).getCell(6);
 
                 if (cellTotal3 == null) {
                     cellTotal3 = estimateSheet.createRow(10).createCell(6);
                 }
-                cellTotal3.setCellFormula("F11*E11");
 
+                if (check) {
+                    cellTotal3.setCellFormula("F11*E11");
+                }
             }
 
             if (estimateNumberOfItems >= 4) {
@@ -195,22 +266,36 @@ public class ExcelEditing {
                 if (cellQty4 == null) {
                     cellQty4 = estimateSheet.createRow(11).createCell(4);
                 }
-                cellQty4.setCellValue((int)(Double.parseDouble(functions.removeComas(data[19]))));
+
+                if (check) {
+                    cellQty4.setCellStyle(numberStyle);
+                    cellQty4.setCellValue((int) (Double.parseDouble(functions.removeComas(data[19]))));
+                } else {
+                    cellQty4.setCellValue(data[19]);
+                }
 
                 Cell cellRate4 = estimateSheet.getRow(11).getCell(5);
 
                 if (cellRate4 == null) {
                     cellRate4 = estimateSheet.createRow(11).createCell(5);
                 }
-                cellRate4.setCellValue(Double.parseDouble(data[20]));
+
+                if (check) {
+                    cellRate4.setCellStyle(accountingStyle);
+                    cellRate4.setCellValue(Double.parseDouble(functions.removeComas(data[20])));
+                } else {
+                    cellRate4.setCellValue(data[20]);
+                }
 
                 Cell cellTotal4 = estimateSheet.getRow(11).getCell(6);
 
                 if (cellTotal4 == null) {
                     cellTotal4 = estimateSheet.createRow(11).createCell(6);
                 }
-                cellTotal4.setCellFormula("F12*E12");
 
+                if (check) {
+                    cellTotal4.setCellFormula("F12*E12");
+                }
             }
 
             if (estimateNumberOfItems >= 5) {
@@ -234,22 +319,36 @@ public class ExcelEditing {
                 if (cellQty5 == null) {
                     cellQty5 = estimateSheet.createRow(12).createCell(4);
                 }
-                cellQty5.setCellValue((int)(Double.parseDouble(functions.removeComas(data[23]))));
+
+                if (check) {
+                    cellQty5.setCellStyle(numberStyle);
+                    cellQty5.setCellValue((int) (Double.parseDouble(functions.removeComas(data[23]))));
+                } else {
+                    cellQty5.setCellValue(data[23]);
+                }
 
                 Cell cellRate5 = estimateSheet.getRow(12).getCell(5);
 
                 if (cellRate5 == null) {
                     cellRate5 = estimateSheet.createRow(12).createCell(5);
                 }
-                cellRate5.setCellValue(Double.parseDouble(data[24]));
+
+                if (check) {
+                    cellRate5.setCellStyle(accountingStyle);
+                    cellRate5.setCellValue(Double.parseDouble(functions.removeComas(data[24])));
+                } else {
+                    cellRate5.setCellValue(data[24]);
+                }
 
                 Cell cellTotal5 = estimateSheet.getRow(12).getCell(6);
 
                 if (cellTotal5 == null) {
                     cellTotal5 = estimateSheet.createRow(12).createCell(6);
                 }
-                cellTotal5.setCellFormula("F13*E13");
 
+                if (check) {
+                    cellTotal5.setCellFormula("F13*E13");
+                }
             }
 
             if (estimateNumberOfItems >= 6) {
@@ -273,22 +372,36 @@ public class ExcelEditing {
                 if (cellQty6 == null) {
                     cellQty6 = estimateSheet.createRow(13).createCell(4);
                 }
-                cellQty6.setCellValue((int)(Double.parseDouble(functions.removeComas(data[27]))));
+
+                if (check) {
+                    cellQty6.setCellStyle(numberStyle);
+                    cellQty6.setCellValue((int) (Double.parseDouble(functions.removeComas(data[27]))));
+                } else {
+                    cellQty6.setCellValue(data[27]);
+                }
 
                 Cell cellRate6 = estimateSheet.getRow(13).getCell(5);
 
                 if (cellRate6 == null) {
                     cellRate6 = estimateSheet.createRow(13).createCell(5);
                 }
-                cellRate6.setCellValue(Double.parseDouble(data[28]));
+
+                if (check) {
+                    cellRate6.setCellStyle(accountingStyle);
+                    cellRate6.setCellValue(Double.parseDouble(functions.removeComas(data[28])));
+                } else {
+                    cellRate6.setCellValue(data[28]);
+                }
 
                 Cell cellTotal6 = estimateSheet.getRow(13).getCell(6);
 
                 if (cellTotal6 == null) {
                     cellTotal6 = estimateSheet.createRow(13).createCell(6);
                 }
-                cellTotal6.setCellFormula("F14*E14");
 
+                if (check) {
+                    cellTotal6.setCellFormula("F14*E14");
+                }
             }
 
             if (estimateNumberOfItems >= 7) {
@@ -312,22 +425,36 @@ public class ExcelEditing {
                 if (cellQty7 == null) {
                     cellQty7 = estimateSheet.createRow(14).createCell(4);
                 }
-                cellQty7.setCellValue((int)(Double.parseDouble(functions.removeComas(data[31]))));
+
+                if (check) {
+                    cellQty7.setCellStyle(numberStyle);
+                    cellQty7.setCellValue((int) (Double.parseDouble(functions.removeComas(data[31]))));
+                } else {
+                    cellQty7.setCellValue(data[31]);
+                }
 
                 Cell cellRate7 = estimateSheet.getRow(14).getCell(5);
 
                 if (cellRate7 == null) {
                     cellRate7 = estimateSheet.createRow(14).createCell(5);
                 }
-                cellRate7.setCellValue(Double.parseDouble(data[32]));
+
+                if (check) {
+                    cellRate7.setCellStyle(accountingStyle);
+                    cellRate7.setCellValue(Double.parseDouble(functions.removeComas(data[32])));
+                } else {
+                    cellRate7.setCellValue(data[32]);
+                }
 
                 Cell cellTotal7 = estimateSheet.getRow(14).getCell(6);
 
                 if (cellTotal7 == null) {
                     cellTotal7 = estimateSheet.createRow(14).createCell(6);
                 }
-                cellTotal7.setCellFormula("F15*E15");
 
+                if (check) {
+                    cellTotal7.setCellFormula("F15*E15");
+                }
             }
 
             if (estimateNumberOfItems >= 8) {
@@ -351,22 +478,36 @@ public class ExcelEditing {
                 if (cellQty8 == null) {
                     cellQty8 = estimateSheet.createRow(15).createCell(4);
                 }
-                cellQty8.setCellValue((int)(Double.parseDouble(functions.removeComas(data[35]))));
+
+                if (check) {
+                    cellQty8.setCellStyle(numberStyle);
+                    cellQty8.setCellValue((int) (Double.parseDouble(functions.removeComas(data[35]))));
+                } else {
+                    cellQty8.setCellValue(data[35]);
+                }
 
                 Cell cellRate8 = estimateSheet.getRow(15).getCell(5);
 
                 if (cellRate8 == null) {
                     cellRate8 = estimateSheet.createRow(15).createCell(5);
                 }
-                cellRate8.setCellValue(Double.parseDouble(data[36]));
+
+                if (check) {
+                    cellRate8.setCellStyle(accountingStyle);
+                    cellRate8.setCellValue(Double.parseDouble(functions.removeComas(data[36])));
+                } else {
+                    cellRate8.setCellValue(data[36]);
+                }
 
                 Cell cellTotal8 = estimateSheet.getRow(15).getCell(6);
 
                 if (cellTotal8 == null) {
                     cellTotal8 = estimateSheet.createRow(15).createCell(6);
                 }
-                cellTotal8.setCellFormula("F16*E16");
 
+                if (check) {
+                    cellTotal8.setCellFormula("F16*E16");
+                }
             }
 
             if (estimateNumberOfItems >= 9) {
@@ -390,22 +531,36 @@ public class ExcelEditing {
                 if (cellQty9 == null) {
                     cellQty9 = estimateSheet.createRow(16).createCell(4);
                 }
-                cellQty9.setCellValue((int)(Double.parseDouble(functions.removeComas(data[39]))));
+
+                if (check) {
+                    cellQty9.setCellStyle(numberStyle);
+                    cellQty9.setCellValue((int) (Double.parseDouble(functions.removeComas(data[39]))));
+                } else {
+                    cellQty9.setCellValue(data[39]);
+                }
 
                 Cell cellRate9 = estimateSheet.getRow(16).getCell(5);
 
                 if (cellRate9 == null) {
                     cellRate9 = estimateSheet.createRow(16).createCell(5);
                 }
-                cellRate9.setCellValue(Double.parseDouble(data[40]));
+
+                if (check) {
+                    cellRate9.setCellStyle(accountingStyle);
+                    cellRate9.setCellValue(Double.parseDouble(functions.removeComas(data[40])));
+                } else {
+                    cellRate9.setCellValue(data[40]);
+                }
 
                 Cell cellTotal9 = estimateSheet.getRow(16).getCell(6);
 
                 if (cellTotal9 == null) {
                     cellTotal9 = estimateSheet.createRow(16).createCell(6);
                 }
-                cellTotal9.setCellFormula("F17*E17");
 
+                if (check) {
+                    cellTotal9.setCellFormula("F17*E17");
+                }
             }
 
             if (estimateNumberOfItems >= 10) {
@@ -429,22 +584,36 @@ public class ExcelEditing {
                 if (cellQty10 == null) {
                     cellQty10 = estimateSheet.createRow(17).createCell(4);
                 }
-                cellQty10.setCellValue((int)(Double.parseDouble(functions.removeComas(data[43]))));
+
+                if (check) {
+                    cellQty10.setCellStyle(numberStyle);
+                    cellQty10.setCellValue((int) (Double.parseDouble(functions.removeComas(data[43]))));
+                } else {
+                    cellQty10.setCellValue(data[43]);
+                }
 
                 Cell cellRate10 = estimateSheet.getRow(17).getCell(5);
 
                 if (cellRate10 == null) {
                     cellRate10 = estimateSheet.createRow(17).createCell(5);
                 }
-                cellRate10.setCellValue(Double.parseDouble(data[44]));
+
+                if (check) {
+                    cellRate10.setCellStyle(accountingStyle);
+                    cellRate10.setCellValue(Double.parseDouble(functions.removeComas(data[44])));
+                } else {
+                    cellRate10.setCellValue(data[44]);
+                }
 
                 Cell cellTotal10 = estimateSheet.getRow(17).getCell(6);
 
                 if (cellTotal10 == null) {
                     cellTotal10 = estimateSheet.createRow(17).createCell(6);
                 }
-                cellTotal10.setCellFormula("F18*E18");
 
+                if (check) {
+                    cellTotal10.setCellFormula("F18*E18");
+                }
             }
 
             if (estimateNumberOfItems >= 11) {
@@ -468,22 +637,36 @@ public class ExcelEditing {
                 if (cellQty11 == null) {
                     cellQty11 = estimateSheet.createRow(18).createCell(4);
                 }
-                cellQty11.setCellValue((int)(Double.parseDouble(functions.removeComas(data[47]))));
+
+                if (check) {
+                    cellQty11.setCellStyle(numberStyle);
+                    cellQty11.setCellValue((int) (Double.parseDouble(functions.removeComas(data[47]))));
+                } else {
+                    cellQty11.setCellValue(data[47]);
+                }
 
                 Cell cellRate11 = estimateSheet.getRow(18).getCell(5);
 
                 if (cellRate11 == null) {
                     cellRate11 = estimateSheet.createRow(18).createCell(5);
                 }
-                cellRate11.setCellValue(Double.parseDouble(data[48]));
+
+                if (check) {
+                    cellRate11.setCellStyle(accountingStyle);
+                    cellRate11.setCellValue(Double.parseDouble(functions.removeComas(data[48])));
+                } else {
+                    cellRate11.setCellValue(data[48]);
+                }
 
                 Cell cellTotal11 = estimateSheet.getRow(18).getCell(6);
 
                 if (cellTotal11 == null) {
                     cellTotal11 = estimateSheet.createRow(18).createCell(6);
                 }
-                cellTotal11.setCellFormula("F19*E19");
 
+                if (check) {
+                    cellTotal11.setCellFormula("F19*E19");
+                }
             }
 
             if (estimateNumberOfItems >= 12) {
@@ -507,22 +690,36 @@ public class ExcelEditing {
                 if (cellQty12 == null) {
                     cellQty12 = estimateSheet.createRow(19).createCell(4);
                 }
-                cellQty12.setCellValue((int)(Double.parseDouble(functions.removeComas(data[51]))));
+
+                if (check) {
+                    cellQty12.setCellStyle(numberStyle);
+                    cellQty12.setCellValue((int) (Double.parseDouble(functions.removeComas(data[51]))));
+                } else {
+                    cellQty12.setCellValue(data[51]);
+                }
 
                 Cell cellRate12 = estimateSheet.getRow(19).getCell(5);
 
                 if (cellRate12 == null) {
                     cellRate12 = estimateSheet.createRow(19).createCell(5);
                 }
-                cellRate12.setCellValue(Double.parseDouble(data[52]));
+
+                if (check) {
+                    cellRate12.setCellStyle(accountingStyle);
+                    cellRate12.setCellValue(Double.parseDouble(functions.removeComas(data[52])));
+                } else {
+                    cellRate12.setCellValue(data[52]);
+                }
 
                 Cell cellTotal12 = estimateSheet.getRow(19).getCell(6);
 
                 if (cellTotal12 == null) {
                     cellTotal12 = estimateSheet.createRow(19).createCell(6);
                 }
-                cellTotal12.setCellFormula("F20*E20");
 
+                if (check) {
+                    cellTotal12.setCellFormula("F20*E20");
+                }
             }
 
             if (estimateNumberOfItems >= 13) {
@@ -546,22 +743,36 @@ public class ExcelEditing {
                 if (cellQty13 == null) {
                     cellQty13 = estimateSheet.createRow(20).createCell(4);
                 }
-                cellQty13.setCellValue((int)(Double.parseDouble(functions.removeComas(data[55]))));
+
+                if (check) {
+                    cellQty13.setCellStyle(numberStyle);
+                    cellQty13.setCellValue((int) (Double.parseDouble(functions.removeComas(data[55]))));
+                } else {
+                    cellQty13.setCellValue(data[55]);
+                }
 
                 Cell cellRate13 = estimateSheet.getRow(20).getCell(5);
 
                 if (cellRate13 == null) {
                     cellRate13 = estimateSheet.createRow(20).createCell(5);
                 }
-                cellRate13.setCellValue(Double.parseDouble(data[56]));
+
+                if (check) {
+                    cellRate13.setCellStyle(accountingStyle);
+                    cellRate13.setCellValue(Double.parseDouble(functions.removeComas(data[56])));
+                } else {
+                    cellRate13.setCellValue(data[56]);
+                }
 
                 Cell cellTotal13 = estimateSheet.getRow(20).getCell(6);
 
                 if (cellTotal13 == null) {
                     cellTotal13 = estimateSheet.createRow(20).createCell(6);
                 }
-                cellTotal13.setCellFormula("F21*E21");
 
+                if (check) {
+                    cellTotal13.setCellFormula("F21*E21");
+                }
             }
 
             if (estimateNumberOfItems >= 14) {
@@ -585,22 +796,36 @@ public class ExcelEditing {
                 if (cellQty14 == null) {
                     cellQty14 = estimateSheet.createRow(21).createCell(4);
                 }
-                cellQty14.setCellValue((int)(Double.parseDouble(functions.removeComas(data[59]))));
+
+                if (check) {
+                    cellQty14.setCellStyle(numberStyle);
+                    cellQty14.setCellValue((int) (Double.parseDouble(functions.removeComas(data[59]))));
+                } else {
+                    cellQty14.setCellValue(data[59]);
+                }
 
                 Cell cellRate14 = estimateSheet.getRow(21).getCell(5);
 
                 if (cellRate14 == null) {
                     cellRate14 = estimateSheet.createRow(21).createCell(5);
                 }
-                cellRate14.setCellValue(Double.parseDouble(data[60]));
+
+                if (check) {
+                    cellRate14.setCellStyle(accountingStyle);
+                    cellRate14.setCellValue(Double.parseDouble(functions.removeComas(data[60])));
+                } else {
+                    cellRate14.setCellValue(data[60]);
+                }
 
                 Cell cellTotal14 = estimateSheet.getRow(21).getCell(6);
 
                 if (cellTotal14 == null) {
                     cellTotal14 = estimateSheet.createRow(21).createCell(6);
                 }
-                cellTotal14.setCellFormula("F22*E22");
 
+                if (check) {
+                    cellTotal14.setCellFormula("F22*E22");
+                }
             }
 
             if (estimateNumberOfItems >= 15) {
@@ -624,22 +849,36 @@ public class ExcelEditing {
                 if (cellQty15 == null) {
                     cellQty15 = estimateSheet.createRow(22).createCell(4);
                 }
-                cellQty15.setCellValue((int)(Double.parseDouble(functions.removeComas(data[63]))));
+
+                if (check) {
+                    cellQty15.setCellStyle(numberStyle);
+                    cellQty15.setCellValue((int) (Double.parseDouble(functions.removeComas(data[63]))));
+                } else {
+                    cellQty15.setCellValue(data[63]);
+                }
 
                 Cell cellRate15 = estimateSheet.getRow(22).getCell(5);
 
                 if (cellRate15 == null) {
                     cellRate15 = estimateSheet.createRow(22).createCell(5);
                 }
-                cellRate15.setCellValue(Double.parseDouble(data[64]));
+
+                if (check) {
+                    cellRate15.setCellStyle(accountingStyle);
+                    cellRate15.setCellValue(Double.parseDouble(functions.removeComas(data[64])));
+                } else {
+                    cellRate15.setCellValue(data[64]);
+                }
 
                 Cell cellTotal15 = estimateSheet.getRow(22).getCell(6);
 
                 if (cellTotal15 == null) {
                     cellTotal15 = estimateSheet.createRow(22).createCell(6);
                 }
-                cellTotal15.setCellFormula("F23*E23");
 
+                if (check) {
+                    cellTotal15.setCellFormula("F23*E23");
+                }
             }
 
             Cell cellOverallTotal = estimateSheet.getRow(31).getCell(6);
@@ -654,24 +893,40 @@ public class ExcelEditing {
             output.close();
 
         } catch ( IOException e ) {
-
             e.printStackTrace();
             errorCheck.infoEnteredError("Estimate file failed to create", e.getMessage());
-
         }
     }
 
     /* Method for inputting all data entered into the DesignQuest Traveler Excel file! */
     @SuppressWarnings("ConstantConditions")
-    public void travelerExcel(String data[], int travelerNumberOfProcesses, String fileSavePath) {
+    public void travelerExcel(String data[], int travelerNumberOfProcesses, String fileSavePath, Boolean check) {
 
         try {
 
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("sample/CustomerFiles/Excel/ShopTraveler.xlsx");
 
             XSSFWorkbook travelerWorkbook = new XSSFWorkbook(inputStream);
-
             XSSFSheet travelerSheet = travelerWorkbook.getSheet("Shop Traveler");
+
+            XSSFFont font = travelerWorkbook.createFont();
+            font.setColor(XSSFFont.DEFAULT_FONT_COLOR);
+            font.setFontHeight(13);
+
+            DataFormat format = travelerWorkbook.createDataFormat();
+            XSSFCellStyle number = travelerWorkbook.createCellStyle();
+            number.setDataFormat(format.getFormat("0.0"));
+            number.setAlignment(HorizontalAlignment.CENTER);
+            number.setVerticalAlignment(VerticalAlignment.CENTER);
+            number.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+            number.setRightBorderColor(IndexedColors.BLACK.getIndex());
+            number.setTopBorderColor(IndexedColors.BLACK.getIndex());
+            number.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+            number.setBorderLeft(BorderStyle.THIN);
+            number.setBorderRight(BorderStyle.THIN);
+            number.setBorderTop(BorderStyle.THIN);
+            number.setBorderBottom(BorderStyle.THIN);
+            number.setFont(font);
 
             /* Setup for entering data in existing spreadsheet! */
             Cell jobNumber = travelerSheet.getRow(0).getCell(1);
@@ -744,7 +999,13 @@ public class ExcelEditing {
                 if (cellPlannedHours1 == null) {
                     cellPlannedHours1 = travelerSheet.createRow(7).createCell(2);
                 }
-                cellPlannedHours1.setCellValue((int)(Double.parseDouble(functions.removeComas(data[9]))));
+
+                if (check) {
+                    cellPlannedHours1.setCellStyle(number);
+                    cellPlannedHours1.setCellValue((int) (Double.parseDouble(functions.removeComas(data[9]))));
+                } else {
+                    cellPlannedHours1.setCellValue(data[9]);
+                }
 
                 if (!Objects.equals(data[10], "")) {
 
@@ -753,7 +1014,13 @@ public class ExcelEditing {
                     if (cellActualHours1 == null) {
                         cellActualHours1 = travelerSheet.createRow(7).createCell(3);
                     }
-                    cellActualHours1.setCellValue((int) (Double.parseDouble(functions.removeComas(data[10]))));
+
+                    if (check && functions.checkCurrencyFormat(data[10])) {
+                        cellActualHours1.setCellStyle(number);
+                        cellActualHours1.setCellValue((int) (Double.parseDouble(functions.removeComas(data[10]))));
+                    } else {
+                        cellActualHours1.setCellValue(data[10]);
+                    }
                 }
 
                 if (!Objects.equals(data[11], "")) {
@@ -763,7 +1030,13 @@ public class ExcelEditing {
                     if (cellCompleted1 == null) {
                         cellCompleted1 = travelerSheet.createRow(7).createCell(5);
                     }
-                    cellCompleted1.setCellValue(Double.parseDouble(functions.removeComas(data[11])));
+
+                    if (check && functions.checkCurrencyFormat(data[11])) {
+                        cellCompleted1.setCellStyle(number);
+                        cellCompleted1.setCellValue(Double.parseDouble(functions.removeComas(data[11])));
+                    } else {
+                        cellCompleted1.setCellValue(data[11]);
+                    }
                 }
             }
 
@@ -781,7 +1054,13 @@ public class ExcelEditing {
                 if (cellPlannedHours2 == null) {
                     cellPlannedHours2 = travelerSheet.createRow(8).createCell(2);
                 }
-                cellPlannedHours2.setCellValue((int)(Double.parseDouble(functions.removeComas(data[13]))));
+
+                if (check) {
+                    cellPlannedHours2.setCellStyle(number);
+                    cellPlannedHours2.setCellValue((int) (Double.parseDouble(functions.removeComas(data[13]))));
+                } else {
+                    cellPlannedHours2.setCellValue(data[13]);
+                }
 
                 if (!Objects.equals(data[14], "")) {
 
@@ -790,7 +1069,13 @@ public class ExcelEditing {
                     if (cellActualHours2 == null) {
                         cellActualHours2 = travelerSheet.createRow(8).createCell(3);
                     }
-                    cellActualHours2.setCellValue((int) (Double.parseDouble(functions.removeComas(data[14]))));
+
+                    if (check && functions.checkCurrencyFormat(data[14])) {
+                        cellActualHours2.setCellStyle(number);
+                        cellActualHours2.setCellValue((int) (Double.parseDouble(functions.removeComas(data[14]))));
+                    } else {
+                        cellActualHours2.setCellValue(data[14]);
+                    }
                 }
 
                 if (!Objects.equals(data[15], "")) {
@@ -800,7 +1085,13 @@ public class ExcelEditing {
                     if (cellCompleted2 == null) {
                         cellCompleted2 = travelerSheet.createRow(8).createCell(5);
                     }
-                    cellCompleted2.setCellValue(Double.parseDouble(functions.removeComas(data[15])));
+
+                    if (check && functions.checkCurrencyFormat(data[15])) {
+                        cellCompleted2.setCellStyle(number);
+                        cellCompleted2.setCellValue(Double.parseDouble(functions.removeComas(data[15])));
+                    } else {
+                        cellCompleted2.setCellValue(data[15]);
+                    }
                 }
             }
 
@@ -818,7 +1109,13 @@ public class ExcelEditing {
                 if (cellPlannedHours3 == null) {
                     cellPlannedHours3 = travelerSheet.createRow(9).createCell(2);
                 }
-                cellPlannedHours3.setCellValue((int)(Double.parseDouble(functions.removeComas(data[17]))));
+
+                if (check) {
+                    cellPlannedHours3.setCellStyle(number);
+                    cellPlannedHours3.setCellValue((int) (Double.parseDouble(functions.removeComas(data[17]))));
+                } else {
+                    cellPlannedHours3.setCellValue(data[17]);
+                }
 
                 if (!Objects.equals(data[18], "")) {
 
@@ -827,7 +1124,13 @@ public class ExcelEditing {
                     if (cellActualHours3 == null) {
                         cellActualHours3 = travelerSheet.createRow(9).createCell(3);
                     }
-                    cellActualHours3.setCellValue((int) (Double.parseDouble(functions.removeComas(data[18]))));
+
+                    if (check && functions.checkCurrencyFormat(data[18])) {
+                        cellActualHours3.setCellStyle(number);
+                        cellActualHours3.setCellValue((int) (Double.parseDouble(functions.removeComas(data[18]))));
+                    } else {
+                        cellActualHours3.setCellValue(data[18]);
+                    }
                 }
 
                 if (!Objects.equals(data[19], "")) {
@@ -837,7 +1140,13 @@ public class ExcelEditing {
                     if (cellCompleted3 == null) {
                         cellCompleted3 = travelerSheet.createRow(9).createCell(5);
                     }
-                    cellCompleted3.setCellValue(Double.parseDouble(functions.removeComas(data[19])));
+
+                    if (check && functions.checkCurrencyFormat(data[19])) {
+                        cellCompleted3.setCellStyle(number);
+                        cellCompleted3.setCellValue(Double.parseDouble(functions.removeComas(data[19])));
+                    } else {
+                        cellCompleted3.setCellValue(data[19]);
+                    }
                 }
             }
 
@@ -855,7 +1164,13 @@ public class ExcelEditing {
                 if (cellPlannedHours4 == null) {
                     cellPlannedHours4 = travelerSheet.createRow(10).createCell(2);
                 }
-                cellPlannedHours4.setCellValue((int)(Double.parseDouble(functions.removeComas(data[21]))));
+
+                if (check) {
+                    cellPlannedHours4.setCellStyle(number);
+                    cellPlannedHours4.setCellValue((int) (Double.parseDouble(functions.removeComas(data[21]))));
+                } else {
+                    cellPlannedHours4.setCellValue(data[21]);
+                }
 
                 if (!Objects.equals(data[22], "")) {
 
@@ -864,7 +1179,13 @@ public class ExcelEditing {
                     if (cellActualHours4 == null) {
                         cellActualHours4 = travelerSheet.createRow(10).createCell(3);
                     }
-                    cellActualHours4.setCellValue((int) (Double.parseDouble(functions.removeComas(data[22]))));
+
+                    if (check && functions.checkCurrencyFormat(data[22])) {
+                        cellActualHours4.setCellStyle(number);
+                        cellActualHours4.setCellValue((int) (Double.parseDouble(functions.removeComas(data[22]))));
+                    } else {
+                        cellActualHours4.setCellValue(data[22]);
+                    }
                 }
 
                 if (!Objects.equals(data[23], "")) {
@@ -874,7 +1195,13 @@ public class ExcelEditing {
                     if (cellCompleted4 == null) {
                         cellCompleted4 = travelerSheet.createRow(10).createCell(5);
                     }
-                    cellCompleted4.setCellValue(Double.parseDouble(functions.removeComas(data[23])));
+
+                    if (check && functions.checkCurrencyFormat(data[23])) {
+                        cellCompleted4.setCellStyle(number);
+                        cellCompleted4.setCellValue(Double.parseDouble(functions.removeComas(data[23])));
+                    } else {
+                        cellCompleted4.setCellValue(data[23]);
+                    }
                 }
             }
 
@@ -892,7 +1219,13 @@ public class ExcelEditing {
                 if (cellPlannedHours5 == null) {
                     cellPlannedHours5 = travelerSheet.createRow(11).createCell(2);
                 }
-                cellPlannedHours5.setCellValue((int)(Double.parseDouble(functions.removeComas(data[25]))));
+
+                if (check) {
+                    cellPlannedHours5.setCellStyle(number);
+                    cellPlannedHours5.setCellValue((int) (Double.parseDouble(functions.removeComas(data[25]))));
+                } else {
+                    cellPlannedHours5.setCellValue(data[25]);
+                }
 
                 if (!Objects.equals(data[26], "")) {
 
@@ -901,7 +1234,13 @@ public class ExcelEditing {
                     if (cellActualHours5 == null) {
                         cellActualHours5 = travelerSheet.createRow(11).createCell(3);
                     }
-                    cellActualHours5.setCellValue((int) (Double.parseDouble(functions.removeComas(data[26]))));
+
+                    if (check && functions.checkCurrencyFormat(data[26])) {
+                        cellActualHours5.setCellStyle(number);
+                        cellActualHours5.setCellValue((int) (Double.parseDouble(functions.removeComas(data[26]))));
+                    } else {
+                        cellActualHours5.setCellValue(data[26]);
+                    }
                 }
 
                 if (!Objects.equals(data[27], "")) {
@@ -911,7 +1250,13 @@ public class ExcelEditing {
                     if (cellCompleted5 == null) {
                         cellCompleted5 = travelerSheet.createRow(11).createCell(5);
                     }
-                    cellCompleted5.setCellValue(Double.parseDouble(functions.removeComas(data[27])));
+
+                    if (check && functions.checkCurrencyFormat(data[27])) {
+                        cellCompleted5.setCellStyle(number);
+                        cellCompleted5.setCellValue(Double.parseDouble(functions.removeComas(data[27])));
+                    } else {
+                        cellCompleted5.setCellValue(data[27]);
+                    }
                 }
             }
 
@@ -929,7 +1274,13 @@ public class ExcelEditing {
                 if (cellPlannedHours6 == null) {
                     cellPlannedHours6 = travelerSheet.createRow(12).createCell(2);
                 }
-                cellPlannedHours6.setCellValue((int)(Double.parseDouble(functions.removeComas(data[29]))));
+
+                if (check) {
+                    cellPlannedHours6.setCellStyle(number);
+                    cellPlannedHours6.setCellValue((int) (Double.parseDouble(functions.removeComas(data[29]))));
+                } else {
+                    cellPlannedHours6.setCellValue(data[29]);
+                }
 
                 if (!Objects.equals(data[30], "")) {
 
@@ -938,7 +1289,13 @@ public class ExcelEditing {
                     if (cellActualHours6 == null) {
                         cellActualHours6 = travelerSheet.createRow(12).createCell(3);
                     }
-                    cellActualHours6.setCellValue((int) (Double.parseDouble(functions.removeComas(data[30]))));
+
+                    if (check && functions.checkCurrencyFormat(data[30])) {
+                        cellActualHours6.setCellStyle(number);
+                        cellActualHours6.setCellValue((int) (Double.parseDouble(functions.removeComas(data[30]))));
+                    } else {
+                        cellActualHours6.setCellValue(data[30]);
+                    }
                 }
 
                 if (!Objects.equals(data[31], "")) {
@@ -948,7 +1305,13 @@ public class ExcelEditing {
                     if (cellCompleted6 == null) {
                         cellCompleted6 = travelerSheet.createRow(12).createCell(5);
                     }
-                    cellCompleted6.setCellValue(Double.parseDouble(functions.removeComas(data[31])));
+
+                    if (check && functions.checkCurrencyFormat(data[31])) {
+                        cellCompleted6.setCellStyle(number);
+                        cellCompleted6.setCellValue(Double.parseDouble(functions.removeComas(data[31])));
+                    } else {
+                        cellCompleted6.setCellValue(data[31]);
+                    }
                 }
             }
 
@@ -966,7 +1329,13 @@ public class ExcelEditing {
                 if (cellPlannedHours7 == null) {
                     cellPlannedHours7 = travelerSheet.createRow(13).createCell(2);
                 }
-                cellPlannedHours7.setCellValue((int)(Double.parseDouble(functions.removeComas(data[33]))));
+
+                if (check) {
+                    cellPlannedHours7.setCellStyle(number);
+                    cellPlannedHours7.setCellValue((int) (Double.parseDouble(functions.removeComas(data[33]))));
+                } else {
+                    cellPlannedHours7.setCellValue(data[33]);
+                }
 
                 if (!Objects.equals(data[34], "")) {
 
@@ -975,7 +1344,13 @@ public class ExcelEditing {
                     if (cellActualHours7 == null) {
                         cellActualHours7 = travelerSheet.createRow(13).createCell(3);
                     }
-                    cellActualHours7.setCellValue((int) (Double.parseDouble(functions.removeComas(data[34]))));
+
+                    if (check && functions.checkCurrencyFormat(data[34])) {
+                        cellActualHours7.setCellStyle(number);
+                        cellActualHours7.setCellValue((int) (Double.parseDouble(functions.removeComas(data[34]))));
+                    } else {
+                        cellActualHours7.setCellValue(data[34]);
+                    }
                 }
 
                 if (!Objects.equals(data[35], "")) {
@@ -985,7 +1360,13 @@ public class ExcelEditing {
                     if (cellCompleted7 == null) {
                         cellCompleted7 = travelerSheet.createRow(13).createCell(5);
                     }
-                    cellCompleted7.setCellValue(Double.parseDouble(functions.removeComas(data[35])));
+
+                    if (check && functions.checkCurrencyFormat(data[35])) {
+                        cellCompleted7.setCellStyle(number);
+                        cellCompleted7.setCellValue(Double.parseDouble(functions.removeComas(data[35])));
+                    } else {
+                        cellCompleted7.setCellValue(data[35]);
+                    }
                 }
             }
 
@@ -1003,7 +1384,13 @@ public class ExcelEditing {
                 if (cellPlannedHours8 == null) {
                     cellPlannedHours8 = travelerSheet.createRow(14).createCell(2);
                 }
-                cellPlannedHours8.setCellValue((int)(Double.parseDouble(functions.removeComas(data[37]))));
+
+                if (check) {
+                    cellPlannedHours8.setCellStyle(number);
+                    cellPlannedHours8.setCellValue((int) (Double.parseDouble(functions.removeComas(data[37]))));
+                } else {
+                    cellPlannedHours8.setCellValue(data[37]);
+                }
 
                 if (!Objects.equals(data[38], "")) {
 
@@ -1012,7 +1399,13 @@ public class ExcelEditing {
                     if (cellActualHours8 == null) {
                         cellActualHours8 = travelerSheet.createRow(14).createCell(3);
                     }
-                    cellActualHours8.setCellValue((int) (Double.parseDouble(functions.removeComas(data[38]))));
+
+                    if (check && functions.checkCurrencyFormat(data[38])) {
+                        cellActualHours8.setCellStyle(number);
+                        cellActualHours8.setCellValue((int) (Double.parseDouble(functions.removeComas(data[38]))));
+                    } else {
+                        cellActualHours8.setCellValue(data[38]);
+                    }
                 }
 
                 if (!Objects.equals(data[39], "")) {
@@ -1022,7 +1415,13 @@ public class ExcelEditing {
                     if (cellCompleted8 == null) {
                         cellCompleted8 = travelerSheet.createRow(14).createCell(5);
                     }
-                    cellCompleted8.setCellValue(Double.parseDouble(functions.removeComas(data[39])));
+
+                    if (check && functions.checkCurrencyFormat(data[39])) {
+                        cellCompleted8.setCellStyle(number);
+                        cellCompleted8.setCellValue(Double.parseDouble(functions.removeComas(data[39])));
+                    } else {
+                        cellCompleted8.setCellValue(data[39]);
+                    }
                 }
             }
 
@@ -1040,7 +1439,13 @@ public class ExcelEditing {
                 if (cellPlannedHours9 == null) {
                     cellPlannedHours9 = travelerSheet.createRow(15).createCell(2);
                 }
-                cellPlannedHours9.setCellValue((int)(Double.parseDouble(functions.removeComas(data[41]))));
+
+                if (check) {
+                    cellPlannedHours9.setCellStyle(number);
+                    cellPlannedHours9.setCellValue((int) (Double.parseDouble(functions.removeComas(data[41]))));
+                } else {
+                    cellPlannedHours9.setCellValue(data[41]);
+                }
 
                 if (!Objects.equals(data[42], "")) {
 
@@ -1049,7 +1454,13 @@ public class ExcelEditing {
                     if (cellActualHours9 == null) {
                         cellActualHours9 = travelerSheet.createRow(15).createCell(3);
                     }
-                    cellActualHours9.setCellValue((int) (Double.parseDouble(functions.removeComas(data[42]))));
+
+                    if (check && functions.checkCurrencyFormat(data[42])) {
+                        cellActualHours9.setCellStyle(number);
+                        cellActualHours9.setCellValue((int) (Double.parseDouble(functions.removeComas(data[42]))));
+                    } else {
+                        cellActualHours9.setCellValue(data[42]);
+                    }
                 }
 
                 if (!Objects.equals(data[43], "")) {
@@ -1059,7 +1470,13 @@ public class ExcelEditing {
                     if (cellCompleted9 == null) {
                         cellCompleted9 = travelerSheet.createRow(15).createCell(5);
                     }
-                    cellCompleted9.setCellValue(Double.parseDouble(functions.removeComas(data[43])));
+
+                    if (check && functions.checkCurrencyFormat(data[43])) {
+                        cellCompleted9.setCellStyle(number);
+                        cellCompleted9.setCellValue(Double.parseDouble(functions.removeComas(data[43])));
+                    } else {
+                        cellCompleted9.setCellValue(data[43]);
+                    }
                 }
             }
 
@@ -1089,24 +1506,68 @@ public class ExcelEditing {
             output.close();
 
         } catch ( IOException e ) {
-
             e.printStackTrace();
             errorCheck.infoEnteredError("Traveler file failed to create", e.getMessage());
-
         }
     }
 
     /* Method for inputting all data entered into the DesignQuest Packing List Excel file! */
     @SuppressWarnings("ConstantConditions")
-    public void packingListExcel(String data[], int packingListNumberOfItems, String fileSavePath) {
+    public void packingListExcel(String data[], int packingListNumberOfItems, String fileSavePath, Boolean check) {
 
         try {
 
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("sample/CustomerFiles/Excel/DesignQuestPackingListTemplate.xlsx");
 
             XSSFWorkbook packingListWorkbook = new XSSFWorkbook(inputStream);
-
             XSSFSheet packingListSheet = packingListWorkbook.getSheet("Packing Slip");
+
+            /* Setup of font for each cell style! */
+            XSSFFont font = packingListWorkbook.createFont();
+            font.setColor(XSSFFont.DEFAULT_FONT_COLOR);
+            font.setFontHeight(8);
+
+            /* Pull in default color of Workbook Sheet for color of cell style elements! */
+            Cell testing = packingListSheet.getRow(19).getCell(4);
+            Color color = testing.getCellStyle().getFillForegroundColorColor();
+
+            /* Formatting for cells with a white background! */
+            XSSFCellStyle accountingStyleWhite = packingListWorkbook.createCellStyle();
+            DataFormat accountingFormatWhite = packingListWorkbook.createDataFormat();
+
+            accountingStyleWhite.setDataFormat(accountingFormatWhite.getFormat("0"));
+            accountingStyleWhite.setAlignment(HorizontalAlignment.CENTER);
+            accountingStyleWhite.setVerticalAlignment(VerticalAlignment.CENTER);
+            accountingStyleWhite.setBorderBottom(BorderStyle.THIN);
+            accountingStyleWhite.setBorderTop(BorderStyle.THIN);
+            accountingStyleWhite.setBorderLeft(BorderStyle.THIN);
+            accountingStyleWhite.setBorderRight(BorderStyle.THIN);
+            accountingStyleWhite.setBottomBorderColor(XSSFColor.toXSSFColor(color));
+            accountingStyleWhite.setTopBorderColor(XSSFColor.toXSSFColor(color));
+            accountingStyleWhite.setLeftBorderColor(XSSFColor.toXSSFColor(color));
+            accountingStyleWhite.setRightBorderColor(XSSFColor.toXSSFColor(color));
+            accountingStyleWhite.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+            accountingStyleWhite.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            accountingStyleWhite.setFont(font);
+
+            /* Formatting for cells with a blue background! */
+            XSSFCellStyle accountingStyleBlue = packingListWorkbook.createCellStyle();
+            DataFormat accountingFormatBlue = packingListWorkbook.createDataFormat();
+
+            accountingStyleBlue.setDataFormat(accountingFormatBlue.getFormat("0x"));
+            accountingStyleBlue.setAlignment(HorizontalAlignment.CENTER);
+            accountingStyleBlue.setVerticalAlignment(VerticalAlignment.CENTER);
+            accountingStyleBlue.setBorderBottom(BorderStyle.THIN);
+            accountingStyleBlue.setBorderTop(BorderStyle.THIN);
+            accountingStyleBlue.setBorderLeft(BorderStyle.THIN);
+            accountingStyleBlue.setBorderRight(BorderStyle.THIN);
+            accountingStyleBlue.setBottomBorderColor(XSSFColor.toXSSFColor(color));
+            accountingStyleBlue.setTopBorderColor(XSSFColor.toXSSFColor(color));
+            accountingStyleBlue.setLeftBorderColor(XSSFColor.toXSSFColor(color));
+            accountingStyleBlue.setRightBorderColor(XSSFColor.toXSSFColor(color));
+            accountingStyleBlue.setFillForegroundColor(XSSFColor.toXSSFColor(color));
+            accountingStyleBlue.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            accountingStyleBlue.setFont(font);
 
             /* Setup for entering data in existing spreadsheet! */
             Cell shipToAddress = packingListSheet.getRow(8).getCell(0);
@@ -1135,14 +1596,26 @@ public class ExcelEditing {
             if (orderNumber == null) {
                 orderNumber = packingListSheet.createRow(15).createCell(2);
             }
-            orderNumber.setCellValue((int) (Double.parseDouble(functions.removeComas(data[3]))));
+
+            if (check) {
+                orderNumber.setCellStyle(accountingStyleWhite);
+                orderNumber.setCellValue((int) (Double.parseDouble(functions.removeComas(data[3]))));
+            } else {
+                orderNumber.setCellValue(data[3]);
+            }
 
             Cell job = packingListSheet.getRow(15).getCell(4);
 
             if (job == null) {
                 job = packingListSheet.createRow(15).createCell(4);
             }
-            job.setCellValue(data[4]);
+
+            if (check) {
+                job.setCellStyle(accountingStyleWhite);
+                job.setCellValue((int) (Double.parseDouble(functions.removeComas(data[4]))));
+            } else {
+                job.setCellValue(data[4]);
+            }
 
             if (packingListNumberOfItems >= 1) {
 
@@ -1165,7 +1638,13 @@ public class ExcelEditing {
                 if (cellItem1Quantity == null) {
                     cellItem1Quantity = packingListSheet.createRow(18).createCell(5);
                 }
-                cellItem1Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[7]))));
+
+                if (check) {
+                    cellItem1Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem1Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[7]))));
+                } else {
+                    cellItem1Quantity.setCellValue(data[7]);
+                }
             }
 
             if (packingListNumberOfItems >= 2) {
@@ -1189,7 +1668,13 @@ public class ExcelEditing {
                 if (cellItem2Quantity == null) {
                     cellItem2Quantity = packingListSheet.createRow(19).createCell(5);
                 }
-                cellItem2Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[10]))));
+
+                if (check) {
+                    cellItem2Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem2Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[10]))));
+                } else {
+                    cellItem2Quantity.setCellValue(data[10]);
+                }
             }
 
             if (packingListNumberOfItems >= 3) {
@@ -1213,7 +1698,13 @@ public class ExcelEditing {
                 if (cellItem3Quantity == null) {
                     cellItem3Quantity = packingListSheet.createRow(20).createCell(5);
                 }
-                cellItem3Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[13]))));
+
+                if (check) {
+                    cellItem3Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem3Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[13]))));
+                } else {
+                    cellItem3Quantity.setCellValue(data[13]);
+                }
             }
 
             if (packingListNumberOfItems >= 4) {
@@ -1237,7 +1728,13 @@ public class ExcelEditing {
                 if (cellItem4Quantity == null) {
                     cellItem4Quantity = packingListSheet.createRow(21).createCell(5);
                 }
-                cellItem4Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[16]))));
+
+                if (check) {
+                    cellItem4Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem4Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[16]))));
+                } else {
+                    cellItem4Quantity.setCellValue(data[16]);
+                }
             }
 
             if (packingListNumberOfItems >= 5) {
@@ -1261,7 +1758,13 @@ public class ExcelEditing {
                 if (cellItem5Quantity == null) {
                     cellItem5Quantity = packingListSheet.createRow(22).createCell(5);
                 }
-                cellItem5Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[19]))));
+
+                if (check) {
+                    cellItem5Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem5Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[19]))));
+                } else {
+                    cellItem5Quantity.setCellValue(data[19]);
+                }
             }
 
             if (packingListNumberOfItems >= 6) {
@@ -1285,7 +1788,13 @@ public class ExcelEditing {
                 if (cellItem6Quantity == null) {
                     cellItem6Quantity = packingListSheet.createRow(23).createCell(5);
                 }
-                cellItem6Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[22]))));
+
+                if (check) {
+                    cellItem6Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem6Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[22]))));
+                } else {
+                    cellItem6Quantity.setCellValue(data[22]);
+                }
             }
 
             if (packingListNumberOfItems >= 7) {
@@ -1309,7 +1818,13 @@ public class ExcelEditing {
                 if (cellItem7Quantity == null) {
                     cellItem7Quantity = packingListSheet.createRow(24).createCell(5);
                 }
-                cellItem7Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[25]))));
+
+                if (check) {
+                    cellItem7Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem7Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[25]))));
+                } else {
+                    cellItem7Quantity.setCellValue(data[25]);
+                }
             }
 
             if (packingListNumberOfItems >= 8) {
@@ -1333,7 +1848,13 @@ public class ExcelEditing {
                 if (cellItem8Quantity == null) {
                     cellItem8Quantity = packingListSheet.createRow(25).createCell(5);
                 }
-                cellItem8Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[28]))));
+
+                if (check) {
+                    cellItem8Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem8Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[28]))));
+                } else {
+                    cellItem8Quantity.setCellValue(data[28]);
+                }
             }
 
             if (packingListNumberOfItems >= 9) {
@@ -1357,7 +1878,13 @@ public class ExcelEditing {
                 if (cellItem9Quantity == null) {
                     cellItem9Quantity = packingListSheet.createRow(26).createCell(5);
                 }
-                cellItem9Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[31]))));
+
+                if (check) {
+                    cellItem9Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem9Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[31]))));
+                } else {
+                    cellItem9Quantity.setCellValue(data[31]);
+                }
             }
 
             if (packingListNumberOfItems >= 10) {
@@ -1381,7 +1908,13 @@ public class ExcelEditing {
                 if (cellItem10Quantity == null) {
                     cellItem10Quantity = packingListSheet.createRow(27).createCell(5);
                 }
-                cellItem10Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[34]))));
+
+                if (check) {
+                    cellItem10Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem10Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[34]))));
+                } else {
+                    cellItem10Quantity.setCellValue(data[34]);
+                }
             }
 
             if (packingListNumberOfItems >= 11) {
@@ -1405,7 +1938,13 @@ public class ExcelEditing {
                 if (cellItem11Quantity == null) {
                     cellItem11Quantity = packingListSheet.createRow(28).createCell(5);
                 }
-                cellItem11Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[37]))));
+
+                if (check) {
+                    cellItem11Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem11Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[37]))));
+                } else {
+                    cellItem11Quantity.setCellValue(data[37]);
+                }
             }
 
             if (packingListNumberOfItems >= 12) {
@@ -1429,7 +1968,13 @@ public class ExcelEditing {
                 if (cellItem12Quantity == null) {
                     cellItem12Quantity = packingListSheet.createRow(29).createCell(5);
                 }
-                cellItem12Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[40]))));
+
+                if (check) {
+                    cellItem12Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem12Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[40]))));
+                } else {
+                    cellItem12Quantity.setCellValue(data[40]);
+                }
             }
 
             if (packingListNumberOfItems >= 13) {
@@ -1453,7 +1998,13 @@ public class ExcelEditing {
                 if (cellItem13Quantity == null) {
                     cellItem13Quantity = packingListSheet.createRow(30).createCell(5);
                 }
-                cellItem13Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[43]))));
+
+                if (check) {
+                    cellItem13Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem13Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[43]))));
+                } else {
+                    cellItem13Quantity.setCellValue(data[43]);
+                }
             }
 
             if (packingListNumberOfItems >= 14) {
@@ -1477,7 +2028,13 @@ public class ExcelEditing {
                 if (cellItem14Quantity == null) {
                     cellItem14Quantity = packingListSheet.createRow(31).createCell(5);
                 }
-                cellItem14Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[46]))));
+
+                if (check) {
+                    cellItem14Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem14Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[46]))));
+                } else {
+                    cellItem14Quantity.setCellValue(data[46]);
+                }
             }
 
             if (packingListNumberOfItems >= 15) {
@@ -1501,7 +2058,13 @@ public class ExcelEditing {
                 if (cellItem15Quantity == null) {
                     cellItem15Quantity = packingListSheet.createRow(32).createCell(5);
                 }
-                cellItem15Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[49]))));
+
+                if (check) {
+                    cellItem15Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem15Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[49]))));
+                } else {
+                    cellItem15Quantity.setCellValue(data[49]);
+                }
             }
 
             if (packingListNumberOfItems >= 16) {
@@ -1525,7 +2088,13 @@ public class ExcelEditing {
                 if (cellItem16Quantity == null) {
                     cellItem16Quantity = packingListSheet.createRow(33).createCell(5);
                 }
-                cellItem16Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[52]))));
+
+                if (check) {
+                    cellItem16Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem16Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[52]))));
+                } else {
+                    cellItem16Quantity.setCellValue(data[52]);
+                }
             }
 
             if (packingListNumberOfItems >= 17) {
@@ -1549,7 +2118,13 @@ public class ExcelEditing {
                 if (cellItem17Quantity == null) {
                     cellItem17Quantity = packingListSheet.createRow(34).createCell(5);
                 }
-                cellItem17Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[55]))));
+
+                if (check) {
+                    cellItem17Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem17Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[55]))));
+                } else {
+                    cellItem17Quantity.setCellValue(data[55]);
+                }
             }
 
             if (packingListNumberOfItems >= 18) {
@@ -1573,7 +2148,13 @@ public class ExcelEditing {
                 if (cellItem18Quantity == null) {
                     cellItem18Quantity = packingListSheet.createRow(35).createCell(5);
                 }
-                cellItem18Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[58]))));
+
+                if (check) {
+                    cellItem18Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem18Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[58]))));
+                } else {
+                    cellItem18Quantity.setCellValue(data[58]);
+                }
             }
 
             if (packingListNumberOfItems >= 19) {
@@ -1597,7 +2178,13 @@ public class ExcelEditing {
                 if (cellItem19Quantity == null) {
                     cellItem19Quantity = packingListSheet.createRow(36).createCell(5);
                 }
-                cellItem19Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[61]))));
+
+                if (check) {
+                    cellItem19Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem19Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[61]))));
+                } else {
+                    cellItem19Quantity.setCellValue(data[61]);
+                }
             }
 
             if (packingListNumberOfItems >= 20) {
@@ -1621,7 +2208,13 @@ public class ExcelEditing {
                 if (cellItem20Quantity == null) {
                     cellItem20Quantity = packingListSheet.createRow(37).createCell(5);
                 }
-                cellItem20Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[64]))));
+
+                if (check) {
+                    cellItem20Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem20Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[64]))));
+                } else {
+                    cellItem20Quantity.setCellValue(data[64]);
+                }
             }
 
             if (packingListNumberOfItems >= 21) {
@@ -1645,7 +2238,13 @@ public class ExcelEditing {
                 if (cellItem21Quantity == null) {
                     cellItem21Quantity = packingListSheet.createRow(38).createCell(5);
                 }
-                cellItem21Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[67]))));
+
+                if (check) {
+                    cellItem21Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem21Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[67]))));
+                } else {
+                    cellItem21Quantity.setCellValue(data[67]);
+                }
             }
 
             if (packingListNumberOfItems >= 22) {
@@ -1669,7 +2268,13 @@ public class ExcelEditing {
                 if (cellItem22Quantity == null) {
                     cellItem22Quantity = packingListSheet.createRow(39).createCell(5);
                 }
-                cellItem22Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[70]))));
+
+                if (check) {
+                    cellItem22Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem22Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[70]))));
+                } else {
+                    cellItem22Quantity.setCellValue(data[70]);
+                }
             }
 
             if (packingListNumberOfItems >= 23) {
@@ -1693,7 +2298,13 @@ public class ExcelEditing {
                 if (cellItem23Quantity == null) {
                     cellItem23Quantity = packingListSheet.createRow(40).createCell(5);
                 }
-                cellItem23Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[73]))));
+
+                if (check) {
+                    cellItem23Quantity.setCellStyle(accountingStyleWhite);
+                    cellItem23Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[73]))));
+                } else {
+                    cellItem23Quantity.setCellValue(data[73]);
+                }
             }
 
             if (packingListNumberOfItems >= 24) {
@@ -1717,7 +2328,13 @@ public class ExcelEditing {
                 if (cellItem24Quantity == null) {
                     cellItem24Quantity = packingListSheet.createRow(41).createCell(5);
                 }
-                cellItem24Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[76]))));
+
+                if (check) {
+                    cellItem24Quantity.setCellStyle(accountingStyleBlue);
+                    cellItem24Quantity.setCellValue((int) (Double.parseDouble(functions.removeComas(data[76]))));
+                } else {
+                    cellItem24Quantity.setCellValue(data[76]);
+                }
             }
 
             FileOutputStream output = new FileOutputStream(new File(fileSavePath));
@@ -1725,12 +2342,10 @@ public class ExcelEditing {
             output.close();
 
         } catch ( IOException e ) {
-
             e.printStackTrace();
             errorCheck.infoEnteredError("Packing List file failed to create", e.getMessage());
-
         }
     }
 
 
-}
+} /* Closing bracket for ExcelEditing class! */

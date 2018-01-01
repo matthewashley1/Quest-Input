@@ -117,7 +117,7 @@ public class Main extends Application {
     private Label packingListLocationFilePath; /* Label used for displaying the default save location for the Packing List form! */
 
     private String costTotalString;
-    private String datePattern = "MM-dd-yyyy"; /* Sets the date pattern for the StringConverter of each DatePicker! */
+    private final String datePattern = "MM-dd-yyyy"; /* Sets the date pattern for the StringConverter of each DatePicker! */
 
     private final String[] estimateData = new String[65]; /* Array for storing user input for items data on the Estimate form! */
     private final String[] travelerData = new String[46]; /* Array for storing user input for process data on the Traveler form! */
@@ -141,21 +141,22 @@ public class Main extends Application {
                                that data has been entered in every TextField in the checkEstimateDataInput method! */
     private boolean checkTravelerDataInput; /* Variable for when data has been entered in every TextField, used to store true or false for checking
                                that data has been entered in every TextField in the checkTravelerDataInput method! */
-    private boolean checkPackingListDataInput; /* Variable for when data has been entered in every TextField, used to store true or false for checking
-                               that data has been entered in every TextField in the checkPackingListDataInput method! */
     private boolean checkCurrencyFormat; /* Variable for checking number inputs in currency format, used to store true or false whether or not a number in currency format has been entered correctly by the user! */
     private boolean checkNumberFormat; /* Variable for checking number inputs, used to store true or false whether or not a number has been entered correctly by the user! */
     private boolean estimateItemsGenerated; /* Variable for checking if items elements have already been created, will store true if items elements have been created in the Estimate form! */
     private boolean travelerProcessesGenerated; /* Variable for checking if process elements have already been created, will store true if process elements have been created in the Traveler form! */
     private boolean packingListItemsGenerated; /* Variable for checking if item elements have already been created, will store true if item elements have been created in the Packing List form! */
-    private boolean estimateCalculationReturn; /* Variable for storing if all calculations passed in the Estimate form! */
-    private boolean travelerCalculationReturn; /* Variable for storing if all calculations passed in the Traveler form! */
     private boolean closeProgram; /* Variable for checking if the program is going to be closed! */
     private boolean estimateFormRunning; /* Variable for storing if an Estimate form is being filled! */
     private boolean travelerFormRunning; /* Variable for storing if the Traveler form is being filled! */
     private boolean packingListFormRunning; /* Variable for storing if the Packing List form is being filled! */
     private boolean settingsPageFilling; /* Variable for storing if the settings page is open or not! */
     private boolean autoCompletionState; /* Variable for storing if Auto Completion should be done for TextFields! */
+    private boolean textFillState; /* Variable for storing if TextField checking should be done! */
+    private boolean formOpenState; /* Variable for storing if forms should be opened after completion! */
+    private boolean estimateCalculation; /* Variable for evaluating the entered data for a Estimate form! */
+    private boolean travelerHoursCalculated; /* Variable for evaluating the entered data for a Traveler form! */
+    private boolean checkPackingListDataInput; /* Variable for evaluating the entered data for a PackingList form! */
 
     private final Functions functions = new Functions(); /* Initializer for the VTFXcontrols Function class! */
     private final CreatedFunctions create = new CreatedFunctions(); /* Initializer for CreatedFunctions class! */
@@ -166,7 +167,7 @@ public class Main extends Application {
     private final DoubleProperty fontSize = new SimpleDoubleProperty(10); /* Initializer for a DoubleProperty variable, used to bind the font size of buttons relative to the main Stage width! */
     private final DoubleProperty imageSize = new SimpleDoubleProperty(10); /* Initializer for a DoubleProperty variable, used to bind the image size of buttons relative to the main Stage height! */
 
-    private Connection connection = null; /* Connection variable used to store the local database connection information! */
+    private Connection connectionMain = null; /* Connection variable used to store the local database connectionMain information! */
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -396,18 +397,13 @@ public class Main extends Application {
         window.setOnCloseRequest(e -> {
             e.consume();
 
-            double centerXPosition = window.getX();
-            double centerYPosition = window.getY();
-            double primaryStageWidth = window.getWidth();
-            double primaryStageHeight = window.getHeight();
+            closeProgram = confirmProgramClose.display(window.getX(), window.getY(), window.getWidth(), window.getHeight());
 
-            closeProgram = confirmProgramClose.display(centerXPosition, centerYPosition, primaryStageWidth, primaryStageHeight);
-
-            /* If program is closing, the database connection will be closed! */
+            /* If program is closing, the database connectionMain will be closed! */
             if (closeProgram) {
 
                 try {
-                    connection.close();
+                    connectionMain.close();
                 } catch ( SQLException ignored ) {
                 }
 
@@ -419,9 +415,9 @@ public class Main extends Application {
         });
         window.show();
 
-        /* Establishes a connection to database and pulls in data from database into the correctedFilePaths Array! */
+        /* Establishes a connectionMain to database and pulls in data from database into the correctedFilePaths Array! */
         initDatabase();
-        initDatabaseArray();
+        initDatabaseData();
 
         /* Lambda expression for a ChangeListener of the width of the primaryStage.
            This expression auto resizes the width of the buttons within the primaryStage, as well as the button's text font size and image size! */
@@ -1099,7 +1095,7 @@ public class Main extends Application {
         dateText.setPrefWidth(130.0);
         dateText.setConverter(new StringConverter<LocalDate>() {
 
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
+            final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
 
             @Override
             public String toString(LocalDate date) {
@@ -1212,12 +1208,7 @@ public class Main extends Application {
         closeButton.setStyle("-fx-font: 13 arial; -fx-base: #C0C0C0;");
         closeButton.setOnAction((ActionEvent e) -> {
 
-            double centerXPosition = window.getX();
-            double centerYPosition = window.getY();
-            double primaryStageWidth = window.getWidth();
-            double primaryStageHeight = window.getHeight();
-
-            boolean cancelForm = confirmProgramClose.cancelAcknowledged("Estimate Form", centerXPosition, centerYPosition, primaryStageWidth, primaryStageHeight);
+            boolean cancelForm = confirmProgramClose.cancelAcknowledged("Estimate Form", window.getX(), window.getY(), window.getWidth(), window.getHeight());
 
             if (cancelForm) {
 
@@ -1246,87 +1237,92 @@ public class Main extends Application {
         saveButton.setStyle("-fx-font: 13 arial; -fx-base: #b4ffa3;");
         saveButton.setOnAction((ActionEvent e) -> {
 
-            checkEstimateDataInput = checkEstimateDataInput();
+            if (textFillState) {
 
-            if (checkEstimateDataInput) {
+                checkEstimateDataInput = checkEstimateDataInput();
 
-                estimateCalculationReturn = calculate(true);
+                if (checkEstimateDataInput) {
 
-                if (estimateCalculationReturn) {
+                    estimateCalculation = calculate(true);
+                }
+            }
 
-                    saveItemData();
+            if (!textFillState || estimateCalculation) {
 
-                    File saveFile = saveFileChooser(estimateData[2], "Save", "Estimate");
+                saveItemData();
 
-                    if (saveFile != null) {
+                File saveFile = saveFileChooser(estimateData[2], "Save", "Estimate");
 
-                        try {
+                if (saveFile != null) {
 
-                            Statement statementInsertAuto = connection.createStatement();
-                            statementInsertAuto.setQueryTimeout(10);
+                    try {
 
-                            for (String anEstimateData : estimateData) {
+                        Statement statementInsertAuto = connectionMain.createStatement();
+                        statementInsertAuto.setQueryTimeout(10);
 
-                                if (!Objects.equals(anEstimateData, "") && anEstimateData != null) {
+                        for (String anEstimateData : estimateData) {
 
-                                    boolean passed = true;
+                            if (!Objects.equals(anEstimateData, "") && anEstimateData != null) {
 
-                                    for (String anAutoCompleteList : autoCompleteList) {
+                                boolean passed = true;
 
-                                        if (anEstimateData.equals(anAutoCompleteList)) {
+                                for (String anAutoCompleteList : autoCompleteList) {
 
-                                            passed = false;
-                                        }
-                                    }
+                                    if (anEstimateData.equals(anAutoCompleteList)) {
 
-                                    if (passed) {
-
-                                        String insertAuto = String.format("INSERT INTO AUTO (WORD) VALUES ('%s')", anEstimateData);
-                                        statementInsertAuto.execute(insertAuto);
-                                        autoCompleteList.add(anEstimateData);
+                                        passed = false;
                                     }
                                 }
+
+                                if (passed) {
+
+                                    String insertAuto = String.format("INSERT INTO AUTO (WORD) VALUES ('%s')", anEstimateData);
+                                    statementInsertAuto.execute(insertAuto);
+                                    autoCompleteList.add(anEstimateData);
+                                }
                             }
-
-                            statementInsertAuto.close();
-
-                        } catch ( Exception e1 ) {
-                            e1.printStackTrace();
                         }
 
-                        inputWorkbookData.estimateExcel(estimateData, estimateSavedItemNumber, saveFile.getAbsolutePath());
+                        statementInsertAuto.close();
 
-                        URL notificationImage = this.getClass().getResource("/sample/CustomerFiles/Images/Saved.gif");
-
-                        TrayNotification notification = new TrayNotification("Estimate Formed Saved", "Saved To: " + saveFile.getAbsolutePath(), NotificationType.SUCCESS);
-                        notification.setImage(new Image(String.valueOf(notificationImage)));
-                        notification.setRectangleFill(Paint.valueOf("#46494f"));
-                        notification.showAndDismiss(Duration.seconds(4));
-
-                        estimateItemNumber = 0;
-                        estimateItemsGenerated = false;
-                        deleteItemData(true);
-
-                        content.getChildren().removeAll(estimateScrollPane);
-                        content.getChildren().add(contentPrompt);
-                        content.setAlignment(Pos.CENTER);
-                        contentPrompt.setText("Form Saved");
-
-                        timer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                Platform.runLater(() ->
-                                        contentPrompt.setText("Select a form to complete"));
-                                try {
-                                    Desktop.getDesktop().open(new File(saveFile.getAbsolutePath()));
-                                } catch ( IOException e1 ) {
-                                    e1.printStackTrace();
-                                }
-                            }
-                        }, 5000);
-
-                        estimateFormRunning = false;
+                    } catch ( Exception e1 ) {
+                        e1.printStackTrace();
                     }
+
+                    inputWorkbookData.estimateExcel(estimateData, estimateSavedItemNumber, saveFile.getAbsolutePath(), textFillState);
+
+                    URL notificationImage = this.getClass().getResource("/sample/CustomerFiles/Images/Saved.gif");
+
+                    TrayNotification notification = new TrayNotification("Estimate Formed Saved", "Saved To: " + saveFile.getAbsolutePath(), NotificationType.SUCCESS);
+                    notification.setImage(new Image(String.valueOf(notificationImage)));
+                    notification.setRectangleFill(Paint.valueOf("#46494f"));
+                    notification.showAndDismiss(Duration.seconds(4));
+
+                    estimateItemNumber = 0;
+                    estimateItemsGenerated = false;
+                    deleteItemData(true);
+
+                    content.getChildren().removeAll(estimateScrollPane);
+                    content.getChildren().add(contentPrompt);
+                    content.setAlignment(Pos.CENTER);
+                    contentPrompt.setText("Form Saved");
+
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            Platform.runLater(() ->
+                                    contentPrompt.setText("Select a form to complete"));
+                            try {
+                                if (formOpenState) {
+                                    Desktop.getDesktop().open(new File(saveFile.getAbsolutePath()));
+                                }
+                            } catch ( IOException e1 ) {
+                                e1.printStackTrace();
+                            }
+                        }
+                    }, 5000);
+
+                    estimateFormRunning = false;
                 }
             }
         });
@@ -1336,9 +1332,15 @@ public class Main extends Application {
         calCost.setStyle("-fx-font: 13 arial; -fx-base: #b4ffa3;");
         calCost.setOnAction((ActionEvent e) -> {
 
-            checkEstimateDataInput = checkEstimateDataInput();
+            if (textFillState) {
 
-            calculate(checkEstimateDataInput);
+                checkEstimateDataInput = checkEstimateDataInput();
+                calculate(checkEstimateDataInput);
+
+            } else {
+
+                calculate(true);
+            }
         });
 
         /* Setup of Label to display the total cost of each item for an Estimate! */
@@ -1743,13 +1745,13 @@ public class Main extends Application {
 
         boolean estimateCalculationCheck = true;
 
-        totalCost.setText("$00.00");
+        totalCost.setText("$0.00");
 
         if (check) {
 
             costTotalDouble = 00.00;
 
-            if ((estimateItemNumber >= 1 && estimateItemNumber <= 15) && (!qty1Text.getText().isEmpty() || !rate1Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 1 && estimateItemNumber <= 15) && (!qty1Text.getText().isEmpty() && !rate1Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty1Text.getText());
 
@@ -1809,9 +1811,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty1 * rate1));
                 }
+
+            } else if (estimateItemNumber >= 1 && estimateItemNumber <= 15) {
+
+                estimateMessages.setText("Nothing was entered for either item 1 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 2 && estimateItemNumber <= 15) && (!qty2Text.getText().isEmpty() || !rate2Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 2 && estimateItemNumber <= 15) && (!qty2Text.getText().isEmpty() && !rate2Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty2Text.getText());
 
@@ -1871,9 +1878,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty2 * rate2));
                 }
+
+            } else if ((estimateItemNumber >= 2 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 2 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 3 && estimateItemNumber <= 15) && (!qty3Text.getText().isEmpty() || !rate3Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 3 && estimateItemNumber <= 15) && (!qty3Text.getText().isEmpty() && !rate3Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty3Text.getText());
 
@@ -1933,9 +1945,15 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty3 * rate3));
                 }
+
+            } else if ((estimateItemNumber >= 3 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 3 Quantity or Rate");
+                estimateCalculationCheck = false;
+
             }
 
-            if ((estimateItemNumber >= 4 && estimateItemNumber <= 15) && (!qty4Text.getText().isEmpty() || !rate4Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 4 && estimateItemNumber <= 15) && (!qty4Text.getText().isEmpty() && !rate4Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty4Text.getText());
 
@@ -1995,9 +2013,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty4 * rate4));
                 }
+
+            } else if ((estimateItemNumber >= 4 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 4 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 5 && estimateItemNumber <= 15) && (!qty5Text.getText().isEmpty() || !rate5Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 5 && estimateItemNumber <= 15) && (!qty5Text.getText().isEmpty() && !rate5Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty5Text.getText());
 
@@ -2057,9 +2080,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty5 * rate5));
                 }
+
+            } else if ((estimateItemNumber >= 5 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 5 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 6 && estimateItemNumber <= 15) && (!qty6Text.getText().isEmpty() || !rate6Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 6 && estimateItemNumber <= 15) && (!qty6Text.getText().isEmpty() && !rate6Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty6Text.getText());
 
@@ -2119,9 +2147,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty6 * rate6));
                 }
+
+            } else if ((estimateItemNumber >= 6 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 6 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 7 && estimateItemNumber <= 15) && (!qty7Text.getText().isEmpty() || !rate7Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 7 && estimateItemNumber <= 15) && (!qty7Text.getText().isEmpty() && !rate7Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty7Text.getText());
 
@@ -2181,9 +2214,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty7 * rate7));
                 }
+
+            } else if ((estimateItemNumber >= 7 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 7 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 8 && estimateItemNumber <= 15) && (!qty8Text.getText().isEmpty() || !rate8Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 8 && estimateItemNumber <= 15) && (!qty8Text.getText().isEmpty() && !rate8Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty8Text.getText());
 
@@ -2243,9 +2281,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty8 * rate8));
                 }
+
+            } else if ((estimateItemNumber >= 8 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 8 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 9 && estimateItemNumber <= 15) && (!qty9Text.getText().isEmpty() || !rate9Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 9 && estimateItemNumber <= 15) && (!qty9Text.getText().isEmpty() && !rate9Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty9Text.getText());
 
@@ -2305,9 +2348,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty9 * rate9));
                 }
+
+            } else if ((estimateItemNumber >= 9 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 9 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 10 && estimateItemNumber <= 15) && (!qty10Text.getText().isEmpty() || !rate10Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 10 && estimateItemNumber <= 15) && (!qty10Text.getText().isEmpty() && !rate10Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty10Text.getText());
 
@@ -2367,9 +2415,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty10 * rate10));
                 }
+
+            } else if ((estimateItemNumber >= 10 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 10 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 11 && estimateItemNumber <= 15) && (!qty11Text.getText().isEmpty() || !rate11Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 11 && estimateItemNumber <= 15) && (!qty11Text.getText().isEmpty() && !rate11Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty11Text.getText());
 
@@ -2429,9 +2482,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty11 * rate11));
                 }
+
+            } else if ((estimateItemNumber >= 11 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 11 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 12 && estimateItemNumber <= 15) && (!qty12Text.getText().isEmpty() || !rate12Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 12 && estimateItemNumber <= 15) && (!qty12Text.getText().isEmpty() && !rate12Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty12Text.getText());
 
@@ -2491,9 +2549,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty12 * rate12));
                 }
+
+            } else if ((estimateItemNumber >= 12 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 12 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 13 && estimateItemNumber <= 15) && (!qty13Text.getText().isEmpty() || !rate13Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 13 && estimateItemNumber <= 15) && (!qty13Text.getText().isEmpty() && !rate13Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty13Text.getText());
 
@@ -2553,9 +2616,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty13 * rate13));
                 }
+
+            } else if ((estimateItemNumber >= 13 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 13 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if ((estimateItemNumber >= 14 && estimateItemNumber <= 15) && (!qty14Text.getText().isEmpty() || !rate14Text.getText().isEmpty())) {
+            if ((estimateItemNumber >= 14 && estimateItemNumber <= 15) && (!qty14Text.getText().isEmpty() && !rate14Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty14Text.getText());
 
@@ -2615,9 +2683,14 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty14 * rate14));
                 }
+
+            } else if ((estimateItemNumber >= 14 && estimateItemNumber <= 15) && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 14 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
-            if (estimateItemNumber == 15 && (!qty15Text.getText().isEmpty() || !rate15Text.getText().isEmpty())) {
+            if (estimateItemNumber == 15 && (!qty15Text.getText().isEmpty() && !rate15Text.getText().isEmpty()) && estimateCalculationCheck) {
 
                 checkCurrencyFormat = functions.checkCurrencyFormat(qty15Text.getText());
 
@@ -2677,6 +2750,11 @@ public class Main extends Application {
 
                     costTotalDouble = (costTotalDouble + (qty15 * rate15));
                 }
+
+            } else if (estimateItemNumber == 15 && estimateCalculationCheck) {
+
+                estimateMessages.setText("Nothing was entered for either item 15 Quantity or Rate");
+                estimateCalculationCheck = false;
             }
 
             if (estimateCalculationCheck) {
@@ -2689,6 +2767,7 @@ public class Main extends Application {
 
                 totalCost.setText("$" + costTotalString);
             }
+
         }
 
         return estimateCalculationCheck;
@@ -2995,7 +3074,7 @@ public class Main extends Application {
     /* Method that initializes the array for storing entered information within the Estimate form! */
     private void itemsDataInit() {
 
-        for (int x = 0; x < 64; x++) {
+        for (int x = 0; x < 65; x++) {
 
             estimateData[x] = "";
 
@@ -3030,7 +3109,7 @@ public class Main extends Application {
         dateReceivedPicker.setPrefWidth(130);
         dateReceivedPicker.setConverter(new StringConverter<LocalDate>() {
 
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
+            final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
 
             @Override
             public String toString(LocalDate date) {
@@ -3075,7 +3154,7 @@ public class Main extends Application {
         dateRequiredPicker.setPrefWidth(130);
         dateRequiredPicker.setConverter(new StringConverter<LocalDate>() {
 
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
+            final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
 
             @Override
             public String toString(LocalDate date) {
@@ -3120,7 +3199,7 @@ public class Main extends Application {
         completedDatePicker.setPrefWidth(130);
         completedDatePicker.setConverter(new StringConverter<LocalDate>() {
 
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
+            final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
 
             @Override
             public String toString(LocalDate date) {
@@ -3593,7 +3672,7 @@ public class Main extends Application {
         calculateTotalPartTime.setFont(Font.font("Arial", FontWeight.SEMI_BOLD, 14));
         Button calculateTimeButton = new Button("Calculate");
         calculateTimeButton.setStyle("-fx-font: 13 arial; -fx-base: #b4ffa3;");
-        calculateTimeButton.setOnAction(e -> travelerCalculationReturn = travelerHoursCalculate());
+        calculateTimeButton.setOnAction(e -> travelerHoursCalculate());
 
         HBox componentCompletionTimeVBoxRow2Right = new HBox(5);
         componentCompletionTimeVBoxRow2Right.getChildren().addAll(calculateTotalPartTime, calculateTimeButton);
@@ -3612,12 +3691,7 @@ public class Main extends Application {
         closeButton.setStyle("-fx-font: 13 arial; -fx-base: #C0C0C0;");
         closeButton.setOnAction((ActionEvent e) -> {
 
-            double centerXPosition = window.getX();
-            double centerYPosition = window.getY();
-            double primaryStageWidth = window.getWidth();
-            double primaryStageHeight = window.getHeight();
-
-            boolean cancelForm = confirmProgramClose.cancelAcknowledged("Traveler Form", centerXPosition, centerYPosition, primaryStageWidth, primaryStageHeight);
+            boolean cancelForm = confirmProgramClose.cancelAcknowledged("Traveler Form", window.getX(), window.getY(), window.getWidth(), window.getHeight());
 
             if (cancelForm) {
 
@@ -3646,86 +3720,91 @@ public class Main extends Application {
         saveButton.setStyle("-fx-font: 13 arial; -fx-base: #b4ffa3;");
         saveButton.setOnAction((ActionEvent e) -> {
 
-            checkTravelerDataInput = checkTravelerDataInput();
+            if (textFillState) {
 
-            if (checkTravelerDataInput) {
+                checkTravelerDataInput = checkTravelerDataInput();
 
-                travelerCalculationReturn = travelerHoursCalculate();
+                if (checkTravelerDataInput) {
 
-                if (travelerCalculationReturn) {
+                    travelerHoursCalculated = travelerHoursCalculate();
+                }
+            }
 
-                    saveTravelerData();
+            if (!textFillState || travelerHoursCalculated) {
 
-                    File saveFile = saveFileChooser(travelerData[0], "Save", "Traveler");
+                saveTravelerData();
 
-                    if (saveFile != null) {
+                File saveFile = saveFileChooser(travelerData[0], "Save", "Traveler");
 
-                        try {
+                if (saveFile != null) {
 
-                            Statement statementInsertAuto = connection.createStatement();
-                            statementInsertAuto.setQueryTimeout(10);
+                    try {
 
-                            for (String aTravelerData : travelerData) {
+                        Statement statementInsertAuto = connectionMain.createStatement();
+                        statementInsertAuto.setQueryTimeout(10);
 
-                                if (!Objects.equals(aTravelerData, "") && aTravelerData != null) {
+                        for (String aTravelerData : travelerData) {
 
-                                    boolean passed = true;
+                            if (!Objects.equals(aTravelerData, "") && aTravelerData != null) {
 
-                                    for (String anAutoCompleteList : autoCompleteList) {
+                                boolean passed = true;
 
-                                        if (aTravelerData.equals(anAutoCompleteList)) {
+                                for (String anAutoCompleteList : autoCompleteList) {
 
-                                            passed = false;
-                                        }
-                                    }
+                                    if (aTravelerData.equals(anAutoCompleteList)) {
 
-                                    if (passed) {
-
-                                        String insertAuto = String.format("INSERT INTO AUTO (WORD) VALUES ('%s')", aTravelerData);
-                                        statementInsertAuto.execute(insertAuto);
-                                        autoCompleteList.add(aTravelerData);
+                                        passed = false;
                                     }
                                 }
+
+                                if (passed) {
+
+                                    String insertAuto = String.format("INSERT INTO AUTO (WORD) VALUES ('%s')", aTravelerData);
+                                    statementInsertAuto.execute(insertAuto);
+                                    autoCompleteList.add(aTravelerData);
+                                }
                             }
-
-                            statementInsertAuto.close();
-
-                        } catch ( Exception e1 ) {
-                            e1.printStackTrace();
                         }
 
-                        inputWorkbookData.travelerExcel(travelerData, travelerSavedProcessNumber, saveFile.getAbsolutePath());
+                        statementInsertAuto.close();
 
-                        URL notificationImage = this.getClass().getResource("/sample/CustomerFiles/Images/Saved.gif");
-
-                        TrayNotification notification = new TrayNotification("Traveler Formed Saved", "Saved To: " + saveFile.getAbsolutePath(), NotificationType.SUCCESS);
-                        notification.setImage(new Image(String.valueOf(notificationImage)));
-                        notification.setRectangleFill(Paint.valueOf("#46494f"));
-                        notification.showAndDismiss(Duration.seconds(4));
-
-                        travelerProcessNumber = 0;
-                        travelerProcessesGenerated = false;
-                        deleteTravelerData(true);
-
-                        content.getChildren().removeAll(travelerScrollPane);
-                        content.getChildren().add(contentPrompt);
-                        content.setAlignment(Pos.CENTER);
-                        contentPrompt.setText("Form Saved");
-
-                        timer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                Platform.runLater(() -> contentPrompt.setText("Select a form to complete"));
-                                try {
-                                    Desktop.getDesktop().open(new File(saveFile.getAbsolutePath()));
-                                } catch ( IOException e1 ) {
-                                    e1.printStackTrace();
-                                }
-                            }
-                        }, 5000);
-
-                        travelerFormRunning = false;
+                    } catch ( Exception e1 ) {
+                        e1.printStackTrace();
                     }
+
+                    inputWorkbookData.travelerExcel(travelerData, travelerSavedProcessNumber, saveFile.getAbsolutePath(), textFillState);
+
+                    URL notificationImage = this.getClass().getResource("/sample/CustomerFiles/Images/Saved.gif");
+
+                    TrayNotification notification = new TrayNotification("Traveler Formed Saved", "Saved To: " + saveFile.getAbsolutePath(), NotificationType.SUCCESS);
+                    notification.setImage(new Image(String.valueOf(notificationImage)));
+                    notification.setRectangleFill(Paint.valueOf("#46494f"));
+                    notification.showAndDismiss(Duration.seconds(4));
+
+                    travelerProcessNumber = 0;
+                    travelerProcessesGenerated = false;
+                    deleteTravelerData(true);
+
+                    content.getChildren().removeAll(travelerScrollPane);
+                    content.getChildren().add(contentPrompt);
+                    content.setAlignment(Pos.CENTER);
+                    contentPrompt.setText("Form Saved");
+
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            Platform.runLater(() -> contentPrompt.setText("Select a form to complete"));
+                            try {
+                                if (formOpenState) {
+                                    Desktop.getDesktop().open(new File(saveFile.getAbsolutePath()));
+                                }
+                            } catch ( IOException e1 ) {
+                                e1.printStackTrace();
+                            }
+                        }
+                    }, 5000);
+
+                    travelerFormRunning = false;
                 }
             }
         });
@@ -4577,7 +4656,7 @@ public class Main extends Application {
         orderDatePackingList.setPrefWidth(130);
         orderDatePackingList.setConverter(new StringConverter<LocalDate>() {
 
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
+            final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(datePattern);
 
             @Override
             public String toString(LocalDate date) {
@@ -5388,12 +5467,7 @@ public class Main extends Application {
         closeButton.setStyle("-fx-font: 13 arial; -fx-base: #C0C0C0;");
         closeButton.setOnAction((ActionEvent e) -> {
 
-            double centerXPosition = window.getX();
-            double centerYPosition = window.getY();
-            double primaryStageWidth = window.getWidth();
-            double primaryStageHeight = window.getHeight();
-
-            boolean cancelForm = confirmProgramClose.cancelAcknowledged("Packing List Form", centerXPosition, centerYPosition, primaryStageWidth, primaryStageHeight);
+            boolean cancelForm = confirmProgramClose.cancelAcknowledged("Packing List Form", window.getX(), window.getY(), window.getWidth(), window.getHeight());
 
             if (cancelForm) {
 
@@ -5422,9 +5496,12 @@ public class Main extends Application {
         saveButton.setStyle("-fx-font: 13 arial; -fx-base: #b4ffa3;");
         saveButton.setOnAction((ActionEvent e) -> {
 
-            checkPackingListDataInput = checkPackingListDataInput();
+            if (textFillState) {
 
-            if (checkPackingListDataInput) {
+                checkPackingListDataInput = checkPackingListDataInput();
+            }
+
+            if (!textFillState || checkPackingListDataInput) {
 
                 savePackingListData();
 
@@ -5434,7 +5511,7 @@ public class Main extends Application {
 
                     try {
 
-                        Statement statementInsertAuto = connection.createStatement();
+                        Statement statementInsertAuto = connectionMain.createStatement();
                         statementInsertAuto.setQueryTimeout(10);
 
                         for (String aPackingListData : packingListData) {
@@ -5466,7 +5543,7 @@ public class Main extends Application {
                         e1.printStackTrace();
                     }
 
-                    inputWorkbookData.packingListExcel(packingListData, packingListSavedItemNumber, saveFile.getAbsolutePath());
+                    inputWorkbookData.packingListExcel(packingListData, packingListSavedItemNumber, saveFile.getAbsolutePath(), textFillState);
 
                     URL notificationImage = this.getClass().getResource("/sample/CustomerFiles/Images/Saved.gif");
 
@@ -5490,7 +5567,9 @@ public class Main extends Application {
                             Platform.runLater(() ->
                                     contentPrompt.setText("Select a form to complete"));
                             try {
-                                Desktop.getDesktop().open(new File(saveFile.getAbsolutePath()));
+                                if (formOpenState) {
+                                    Desktop.getDesktop().open(new File(saveFile.getAbsolutePath()));
+                                }
                             } catch ( IOException e1 ) {
                                 e1.printStackTrace();
                             }
@@ -5522,7 +5601,7 @@ public class Main extends Application {
     /* Method that will check the inputted data within the Packing List form for user error! */
     private boolean checkPackingListDataInput() {
 
-        checkPackingListDataInput = false;
+        boolean checkPackingListDataInput = false;
 
         if (packingListItemNumber == 0) {
 
@@ -6991,21 +7070,16 @@ public class Main extends Application {
         estimateFileChoose.setStyle("-fx-font: 14 arial; -fx-base: #b4ffa3;");
         estimateFileChoose.setOnAction(e -> {
 
-            File estimateLocationChoose = saveFileChooser("", "Open", "Settings");
+            File estimateLocationChoose = saveFileChooser("", "Open", "Estimate");
 
-            if (Objects.equals(estimateLocationChoose, null) && (Objects.equals(correctedFilePaths[0], ("System.getProperty(\"user.home\") + \"/Desktop\"")))) {
-
-                estimateLocationFilePath.setText(String.valueOf(System.getProperty("user.home") + "/Desktop/"));
-                correctedFilePaths[0] = System.getProperty("user.home") + "/Desktop/";
-
-            } else if (!Objects.equals(estimateLocationChoose, null)) {
+            if (!Objects.equals(estimateLocationChoose, null)) {
 
                 try {
 
                     String delete = "DELETE FROM SETINFO";
-                    String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s')", functions.fileRemoveExtension(estimateLocationChoose), correctedFilePaths[1], correctedFilePaths[2], String.valueOf(autoCompletionState));
+                    String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", functions.fileRemoveExtension(estimateLocationChoose), correctedFilePaths[1], correctedFilePaths[2], autoCompletionState, textFillState, formOpenState);
 
-                    Statement statement = connection.createStatement();
+                    Statement statement = connectionMain.createStatement();
                     statement.setQueryTimeout(10);
                     statement.executeUpdate(delete);
                     statement.executeUpdate(filePath);
@@ -7032,21 +7106,16 @@ public class Main extends Application {
         travelerFileChoose.setStyle("-fx-font: 14 arial; -fx-base: #b4ffa3;");
         travelerFileChoose.setOnAction(e -> {
 
-            File travelerLocationChoose = saveFileChooser("", "Open", "Settings");
+            File travelerLocationChoose = saveFileChooser("", "Open", "Traveler");
 
-            if (Objects.equals(travelerLocationChoose, null) && (Objects.equals(correctedFilePaths[1], ("System.getProperty(\"user.home\") + \"/Desktop\"")))) {
-
-                travelerLocationFilePath.setText(String.valueOf(System.getProperty("user.home") + "/Desktop/"));
-                correctedFilePaths[1] = System.getProperty("user.home") + "/Desktop/";
-
-            } else if (!Objects.equals(travelerLocationChoose, null)) {
+            if (!Objects.equals(travelerLocationChoose, null)) {
 
                 try {
 
                     String delete = "DELETE FROM SETINFO";
-                    String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s')", correctedFilePaths[0], functions.fileRemoveExtension(travelerLocationChoose), correctedFilePaths[2], String.valueOf(autoCompletionState));
+                    String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", correctedFilePaths[0], functions.fileRemoveExtension(travelerLocationChoose), correctedFilePaths[2], autoCompletionState, textFillState, formOpenState);
 
-                    Statement statement = connection.createStatement();
+                    Statement statement = connectionMain.createStatement();
                     statement.setQueryTimeout(10);
                     statement.executeUpdate(delete);
                     statement.executeUpdate(filePath);
@@ -7073,21 +7142,16 @@ public class Main extends Application {
         packingListFileChoose.setStyle("-fx-font: 14 arial; -fx-base: #b4ffa3;");
         packingListFileChoose.setOnAction(e -> {
 
-            File packingListLocationChoose = saveFileChooser("", "Open", "Settings");
+            File packingListLocationChoose = saveFileChooser("", "Open", "PackingList");
 
-            if (Objects.equals(packingListLocationChoose, null) && (Objects.equals(correctedFilePaths[2], ("System.getProperty(\"user.home\") + \"/Desktop\"")))) {
-
-                packingListLocationFilePath.setText(String.valueOf(System.getProperty("user.home") + "/Desktop/"));
-                correctedFilePaths[2] = System.getProperty("user.home") + "/Desktop/";
-
-            } else if (!Objects.equals(packingListLocationChoose, null)) {
+            if (!Objects.equals(packingListLocationChoose, null)) {
 
                 try {
 
                     String delete = "DELETE FROM SETINFO";
-                    String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s')", correctedFilePaths[0], correctedFilePaths[1], functions.fileRemoveExtension(packingListLocationChoose), String.valueOf(autoCompletionState));
+                    String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", correctedFilePaths[0], correctedFilePaths[1], functions.fileRemoveExtension(packingListLocationChoose), autoCompletionState, textFillState, formOpenState);
 
-                    Statement statement = connection.createStatement();
+                    Statement statement = connectionMain.createStatement();
                     statement.setQueryTimeout(10);
                     statement.executeUpdate(delete);
                     statement.executeUpdate(filePath);
@@ -7103,24 +7167,72 @@ public class Main extends Application {
             }
         });
 
-        Label autoCompleteEnable = new Label("Enable Line Autocompletion");
-        autoCompleteEnable.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-        SwitchToggle enable = new SwitchToggle("ON", Color.web("#a7ef88"), "OFF", Color.web("#aeb0b2"), TransitionType.BUZZ);
-        enable.setSelected(autoCompletionState);
-        enable.switchOnProperty().addListener((observable, oldValue, newValue) -> {
+        Label formOpenCheck = new Label("Enable Form Opening Check");
+        formOpenCheck.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        SwitchToggle enableFormOpening = new SwitchToggle("ON", Color.web("#a7ef88"), "OFF", Color.web("#aeb0b2"), TransitionType.BUZZ);
+        enableFormOpening.setSelected(formOpenState);
+        enableFormOpening.switchOnProperty().addListener((observable, oldValue, newValue) -> {
 
             try {
 
                 String delete = "DELETE FROM SETINFO";
-                String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s')", correctedFilePaths[0], correctedFilePaths[1], correctedFilePaths[2], String.valueOf(enable.isSelected()));
+                String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", correctedFilePaths[0], correctedFilePaths[1], correctedFilePaths[2], autoCompletionState, textFillState, String.valueOf(enableFormOpening.isSelected()));
 
-                Statement statement = connection.createStatement();
+                Statement statement = connectionMain.createStatement();
                 statement.setQueryTimeout(10);
                 statement.executeUpdate(delete);
                 statement.executeUpdate(filePath);
                 statement.close();
 
-                autoCompletionState = enable.isSelected();
+                formOpenState = enableFormOpening.isSelected();
+
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        });
+
+        Label textFillCheck = new Label("Enable TextField Check");
+        textFillCheck.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        SwitchToggle enableTextFill = new SwitchToggle("ON", Color.web("#a7ef88"), "OFF", Color.web("#aeb0b2"), TransitionType.BUZZ);
+        enableTextFill.setSelected(textFillState);
+        enableTextFill.switchOnProperty().addListener((observable, oldValue, newValue) -> {
+
+            try {
+
+                String delete = "DELETE FROM SETINFO";
+                String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", correctedFilePaths[0], correctedFilePaths[1], correctedFilePaths[2], autoCompletionState, String.valueOf(enableTextFill.isSelected()), formOpenState);
+
+                Statement statement = connectionMain.createStatement();
+                statement.setQueryTimeout(10);
+                statement.executeUpdate(delete);
+                statement.executeUpdate(filePath);
+                statement.close();
+
+                textFillState = enableTextFill.isSelected();
+
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        });
+
+        Label autoCompleteEnable = new Label("Enable Line Autocompletion");
+        autoCompleteEnable.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        SwitchToggle enableAutoComplete = new SwitchToggle("ON", Color.web("#a7ef88"), "OFF", Color.web("#aeb0b2"), TransitionType.BUZZ);
+        enableAutoComplete.setSelected(autoCompletionState);
+        enableAutoComplete.switchOnProperty().addListener((observable, oldValue, newValue) -> {
+
+            try {
+
+                String delete = "DELETE FROM SETINFO";
+                String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", correctedFilePaths[0], correctedFilePaths[1], correctedFilePaths[2], String.valueOf(enableAutoComplete.isSelected()), textFillState, formOpenState);
+
+                Statement statement = connectionMain.createStatement();
+                statement.setQueryTimeout(10);
+                statement.executeUpdate(delete);
+                statement.executeUpdate(filePath);
+                statement.close();
+
+                autoCompletionState = enableAutoComplete.isSelected();
 
             } catch (Exception e1) {
                 e1.printStackTrace();
@@ -7177,7 +7289,7 @@ public class Main extends Application {
 
                         String deleteAuto = "DELETE FROM AUTO";
 
-                        Statement statementRedoAuto = connection.createStatement();
+                        Statement statementRedoAuto = connectionMain.createStatement();
                         statementRedoAuto.setQueryTimeout(10);
                         statementRedoAuto.executeUpdate(deleteAuto);
 
@@ -7288,8 +7400,18 @@ public class Main extends Application {
         packingListLocationPath.setPadding(new Insets(10));
         packingListLocationPath.setAlignment(Pos.BOTTOM_LEFT);
 
+        HBox openState = new HBox(5);
+        openState.getChildren().addAll(formOpenCheck, enableFormOpening);
+        openState.setPadding(new Insets(10));
+        openState.setAlignment(Pos.BOTTOM_LEFT);
+
+        HBox fillCompletion = new HBox(5);
+        fillCompletion.getChildren().addAll(textFillCheck, enableTextFill);
+        fillCompletion.setPadding(new Insets(10));
+        fillCompletion.setAlignment(Pos.BOTTOM_LEFT);
+
         HBox autoCompletion = new HBox(5);
-        autoCompletion.getChildren().addAll(autoCompleteEnable, enable);
+        autoCompletion.getChildren().addAll(autoCompleteEnable, enableAutoComplete);
         autoCompletion.setPadding(new Insets(10));
         autoCompletion.setAlignment(Pos.BOTTOM_LEFT);
 
@@ -7312,7 +7434,7 @@ public class Main extends Application {
 
         VBox settingsLayout = new VBox(5);
         settingsLayout.setPadding(new Insets(5));
-        settingsLayout.getChildren().addAll(pageLabel, estimateRow, estimateLocationPath, travelerRow, travelerLocationPath, packingListRow, packingListLocationPath, autoCompletion, removeAutoCompletion, settingsBottom);
+        settingsLayout.getChildren().addAll(pageLabel, estimateRow, estimateLocationPath, travelerRow, travelerLocationPath, packingListRow, packingListLocationPath, openState, fillCompletion, autoCompletion, removeAutoCompletion, settingsBottom);
 
         /* Setup for settingsScrollPane ScrollPane! */
         settingsScrollPane = new ScrollPane();
@@ -7328,17 +7450,21 @@ public class Main extends Application {
         File saveFile = new File("");
         int arrayLocation = 0;
 
-        if (Objects.equals(function, "Estimate")) {
+        switch (function) {
+            case "Estimate":
 
-            arrayLocation = 0;
+                arrayLocation = 0;
 
-        } else if (Objects.equals(function, "Traveler")) {
+                break;
+            case "Traveler":
 
-            arrayLocation = 1;
+                arrayLocation = 1;
 
-        } else if (Objects.equals(function, "PackingList")) {
+                break;
+            case "PackingList":
 
-            arrayLocation = 2;
+                arrayLocation = 2;
+                break;
         }
 
         if (Objects.equals(operation, "Save")) {
@@ -7358,6 +7484,7 @@ public class Main extends Application {
             FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("XLSX files (*.xlsx)", "*.xlsx");
             fileChooser.getExtensionFilters().add(extFilter);
             fileChooser.setInitialFileName("Create");
+            fileChooser.setInitialDirectory(new File(correctedFilePaths[arrayLocation]));
 
             fileChooser.setTitle("Chose Default Location");
             saveFile = fileChooser.showSaveDialog(window);
@@ -7367,14 +7494,14 @@ public class Main extends Application {
         return saveFile;
     }
 
-    /* Method that will establish a connection to the local database or create the local database if it doesn't exist! */
+    /* Method that will establish a connectionMain to the local database or create the local database if it doesn't exist! */
     private void initDatabase () {
 
         String environment = System.getProperty("os.name");
         String home = System.getProperty("user.home");
         String databaseFileLocation = "";
 
-        InputStream fileInput = this.getClass().getResourceAsStream("/sample/CustomerFiles/Databases/DesignQuest.sqlite");
+        InputStream fileInput = this.getClass().getResourceAsStream("/sample/CustomerFiles/Databases/DesignQuest2.sqlite");
         OutputStream fileOutput;
 
         byte[] buffer = new byte[1028];
@@ -7386,8 +7513,8 @@ public class Main extends Application {
 
         if (environment.startsWith("Mac") || environment.startsWith("Windows")) {
 
-            check = new File(home + "/DesignQuest", "DesignQuest.sqlite").exists();
-            databaseFileLocation = (home + "/DesignQuest/DesignQuest.sqlite");
+            check = new File(home + "/DesignQuest", "DesignQuest2.sqlite").exists();
+            databaseFileLocation = (home + "/DesignQuest/DesignQuest2.sqlite");
         }
 
         if (!check) {
@@ -7449,11 +7576,13 @@ public class Main extends Application {
                 SQLiteConfig config = new SQLiteConfig();
                 config.setEncoding(SQLiteConfig.Encoding.UTF8);
                 Class.forName("org.sqlite.JDBC");
-                connection = DriverManager.getConnection(connStr, config.toProperties());
+                connectionMain = DriverManager.getConnection(connStr, config.toProperties());
 
-            } catch ( Exception e ) {
+            } catch (Exception e) {
 
-                connection = null;
+                e.printStackTrace();
+
+                connectionMain = null;
 
                 URL notificationImage = this.getClass().getResource("/sample/CustomerFiles/Images/Saved.gif");
 
@@ -7475,42 +7604,151 @@ public class Main extends Application {
     }
 
     /* Method that will pull in stored user info from the local database! */
-    private void initDatabaseArray() {
+    private void initDatabaseData() {
 
         try {
 
-            if (connection != null) {
+            if (Objects.nonNull(connectionMain)) {
 
-                String createTableSetInfo = "CREATE TABLE IF NOT EXISTS SETINFO (ID INTEGER PRIMARY KEY AUTOINCREMENT, ESTIMATEPATH TEXT(1000), TRAVELERPATH TEXT(1000), PACKINGLISTPATH TEXT (1000), STATE TEXT(7))";
+                if (new File(System.getProperty("user.home") + "/DesignQuest", "DesignQuest.sqlite").exists()) {
+
+                    try {
+
+                        File getPath = new File(String.format(System.getProperty("user.home") + "%s", "/DesignQuest/DesignQuest.sqlite"));
+                        String connStr = String.format("jdbc:sqlite:%s", getPath.getAbsolutePath());
+
+                        Connection connectionPrevious1; /* Connection variable used to store the local database connectionPrevious1 information! */
+
+                        try {
+
+                            SQLiteConfig config = new SQLiteConfig();
+                            config.setEncoding(SQLiteConfig.Encoding.UTF8);
+                            Class.forName("org.sqlite.JDBC");
+                            connectionPrevious1 = DriverManager.getConnection(connStr, config.toProperties());
+
+                        } catch (Exception e) {
+
+                            e.printStackTrace();
+
+                            connectionPrevious1 = null;
+
+                            URL notificationImage = this.getClass().getResource("/sample/CustomerFiles/Images/Saved.gif");
+
+                            TrayNotification notification = new TrayNotification("DataBase Error", "Connection To Database Not Established", NotificationType.SUCCESS);
+                            notification.setImage(new Image(String.valueOf(notificationImage)));
+                            notification.setRectangleFill(Paint.valueOf("#46494f"));
+                            notification.showAndDismiss(Duration.seconds(7));
+
+                            contentPrompt.setText(String.valueOf("Will Not Be Able To Store Settings Information"));
+
+                            timer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    Platform.runLater(() -> contentPrompt.setText("Select a form to complete"));
+                                }
+                            }, 1000000);
+                        }
+
+                        if (Objects.nonNull(connectionPrevious1)) {
+
+                            String createTableSetInfo = "CREATE TABLE IF NOT EXISTS SETINFO (ID INTEGER PRIMARY KEY AUTOINCREMENT, ESTIMATEPATH TEXT(1000), TRAVELERPATH TEXT(1000), PACKINGLISTPATH TEXT (1000), STATE TEXT(7), FILL TEXT(7), OPEN TEXT(7))";
+                            String createTableAuto = "CREATE TABLE IF NOT EXISTS AUTO (ID INTEGER PRIMARY KEY AUTOINCREMENT, WORD TEXT(1000))";
+
+                            Statement statementSetInfo = connectionMain.createStatement();
+                            statementSetInfo.setQueryTimeout(10);
+                            statementSetInfo.execute(createTableSetInfo);
+                            statementSetInfo.close();
+
+                            Statement statementAuto = connectionMain.createStatement();
+                            statementAuto.setQueryTimeout(10);
+                            statementAuto.execute(createTableAuto);
+                            statementAuto.close();
+
+                            String selectTableSetInfo = "SELECT * FROM SETINFO";
+
+                            Statement querySetInfo = connectionPrevious1.createStatement();
+                            ResultSet rsSetInfo = querySetInfo.executeQuery(selectTableSetInfo);
+
+                            String delete = "DELETE FROM SETINFO";
+                            String filePath = String.format("INSERT INTO SETINFO VALUES ('%s', '%s', '%s', '%s', '%s', '%s')", rsSetInfo.getString(1), rsSetInfo.getString(2), rsSetInfo.getString(3), rsSetInfo.getString(4), "false", "false");
+
+                            querySetInfo.close();
+
+                            Statement statement = connectionMain.createStatement();
+                            statement.setQueryTimeout(10);
+                            statement.executeUpdate(delete);
+                            statement.executeUpdate(filePath);
+                            statement.close();
+
+                            String selectTableAuto = "SELECT * FROM AUTO";
+
+                            Statement queryAuto = connectionPrevious1.createStatement();
+                            ResultSet rsAuto = queryAuto.executeQuery(selectTableAuto);
+
+                            Statement statementInsertAuto = connectionMain.createStatement();
+
+                            while (rsAuto.next()) {
+
+                                String insertAuto = String.format("INSERT INTO AUTO (WORD) VALUES ('%s')", rsAuto.getString(1));
+                                statementInsertAuto.execute(insertAuto);
+                            }
+
+                            queryAuto.close();
+                            statementInsertAuto.close();
+
+                            connectionPrevious1.close();
+
+                            Files.deleteIfExists(Paths.get(System.getProperty("user.home") + "/DesignQuest/DesignQuest.sqlite"));
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+                String createTableSetInfo = "CREATE TABLE IF NOT EXISTS SETINFO (ID INTEGER PRIMARY KEY AUTOINCREMENT, ESTIMATEPATH TEXT(1000), TRAVELERPATH TEXT(1000), PACKINGLISTPATH TEXT (1000), STATE TEXT(7), FILL TEXT(7), OPEN TEXT(7))";
                 String createTableAuto = "CREATE TABLE IF NOT EXISTS AUTO (ID INTEGER PRIMARY KEY AUTOINCREMENT, WORD TEXT(1000))";
                 String selectTableSetInfo = "SELECT * FROM SETINFO";
 
-                Statement statementSetInfo = connection.createStatement();
+                Statement statementSetInfo = connectionMain.createStatement();
                 statementSetInfo.setQueryTimeout(10);
                 statementSetInfo.execute(createTableSetInfo);
                 statementSetInfo.close();
 
-                Statement statementAuto = connection.createStatement();
+                Statement statementAuto = connectionMain.createStatement();
                 statementAuto.setQueryTimeout(10);
                 statementAuto.execute(createTableAuto);
                 statementAuto.close();
 
-                Statement querySetInfo = connection.createStatement();
+                Statement querySetInfo = connectionMain.createStatement();
                 ResultSet rsSetInfo = querySetInfo.executeQuery(selectTableSetInfo);
 
                 correctedFilePaths[0] = rsSetInfo.getString(1);
                 correctedFilePaths[1] = rsSetInfo.getString(2);
                 correctedFilePaths[2] = rsSetInfo.getString(3);
 
-                String state = rsSetInfo.getString(4);
+                if (Objects.equals(correctedFilePaths[0], "")) {
+                    correctedFilePaths[0] = System.getProperty("user.home") + "/Desktop/";
+                }
 
-                autoCompletionState = Objects.equals(state, "true");
+                if (Objects.equals(correctedFilePaths[1], "")) {
+                    correctedFilePaths[1] = System.getProperty("user.home") + "/Desktop/";
+                }
+
+                if (Objects.equals(correctedFilePaths[2], "")) {
+                    correctedFilePaths[2] = System.getProperty("user.home") + "/Desktop/";
+                }
+
+                autoCompletionState = Objects.equals(rsSetInfo.getString(4), "true");
+                textFillState = Objects.equals(rsSetInfo.getString(5), "true");
+                formOpenState = Objects.equals(rsSetInfo.getString(6), "true");
 
                 querySetInfo.close();
 
                 String selectTableAuto = "SELECT * FROM AUTO";
 
-                Statement queryAuto = connection.createStatement();
+                Statement queryAuto = connectionMain.createStatement();
                 ResultSet rsAuto = queryAuto.executeQuery(selectTableAuto);
 
                 while (rsAuto.next()) {
@@ -7519,10 +7757,11 @@ public class Main extends Application {
                 }
 
                 queryAuto.close();
-
             }
 
         } catch (Exception e) {
+
+            e.printStackTrace();
 
             URL notificationImage = this.getClass().getResource("/sample/CustomerFiles/Images/Saved.gif");
 
@@ -7544,5 +7783,6 @@ public class Main extends Application {
         launch(args);
     }
 
-    }
+
+} /* Closing bracket for class Main! */
 

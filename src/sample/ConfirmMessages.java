@@ -168,9 +168,7 @@ public class ConfirmMessages {
         messageWindow.setResizable(false);
 
         messageWindow.heightProperty().addListener(observable -> messageWindow.setY(((primaryStageHeight - messageWindow.getHeight()) / 2d) + primaryStageYPosition));
-
         messageWindow.widthProperty().addListener(observable -> messageWindow.setX(((primaryStageWidth - messageWindow.getWidth()) / 2d) + primaryStageXPosition));
-
         messageWindow.showAndWait();
 
         return answer;
@@ -252,9 +250,7 @@ public class ConfirmMessages {
         messageWindow.setResizable(false);
 
         messageWindow.heightProperty().addListener(observable -> messageWindow.setY(((primaryStageHeight - messageWindow.getHeight()) / 2d) + primaryStageYPosition));
-
         messageWindow.widthProperty().addListener(observable -> messageWindow.setX(((primaryStageWidth - messageWindow.getWidth()) / 2d) + primaryStageXPosition));
-
         messageWindow.showAndWait();
 
         return answer;

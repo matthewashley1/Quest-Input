@@ -62,8 +62,8 @@ matrix:
     - env: FAILURES_ALLOWED=true
 
 ## maven-invoker-plugin is called after deploying javafx-maven-plugin into local repository, so change default-test-call to "install" (because its called at that maven-phase)
-script:
-  - mvn install -B
+## script:
+  ## - mvn install -B
 
 branches:
   only:

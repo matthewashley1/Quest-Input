@@ -33,9 +33,9 @@ matrix:
     - os: osx
       osx_image: xcode9.2
       env: FAILURES_ALLOWED=false
+
   allow_failures:
     - env: FAILURES_ALLOWED=true
-
 
 branches:
   only:
@@ -44,4 +44,4 @@ branches:
 notifications:
   email: false
 
-script: ant build 
+script: ant build

@@ -1,0 +1,46 @@
+<project name="QuestInput" default="dist">
+    <!-- set global properties for this build -->
+    <property name="src" location="src/sample"/>
+    <property name="build" location="build"/>
+
+    <presetdef name="javac">
+        <javac includeantruntime="false" />
+    </presetdef>
+
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="${build}"/>
+    </target>
+
+    <path id="build.classpath" description="reference external libraries">
+        <fileset dir="lib/">
+            <include name="poi-3.16-beta1/lib/commons-codec-1.10.jar"/>
+            <include name="poi-3.16-beta1/lib/commons-collections4-4.1.jar"/>
+            <include name="poi-3.16-beta1/lib/commons-logging-1.2.jar"/>
+            <include name="controlsfx-8/controlsfx-8.40.12.jar"/>
+            <include name="pdfbox-app-2.0.4.jar"/>
+            <include name="poi-3.16-beta1/poi-3.16-beta1.jar"/>
+            <include name="poi-3.16-beta1/poi-ooxml-3.16-beta1.jar"/>
+            <include name="poi-3.16-beta1/poi-ooxml-schemas-3.16-beta1.jar"/>
+            <include name="sqlite-jdbc-3.19.3.jar"/>
+            <include name="TrayNotification-master/out/TrayNotification.jar"/>
+            <include name="VTFXcontrols.jar"/>
+            <include name="poi-3.16-beta1/ooxml-lib/xmlbeans-2.6.0.jar"/>
+        </fileset>
+    </path>
+
+    <target name="compile" depends="init" description="compile the source">
+        <javac srcdir="${src}" destdir="${build}" >
+            <classpath refid="build.classpath"/>
+        </javac>
+    </target>
+
+    <target name="dist" depends="compile" description="generate the distribution">
+        <mkdir dir="${build}/lib"/>
+        <jar jarfile="${build}/lib/QuestInput-${DSTAMP}.jar" basedir="${build}"/>
+    </target>
+
+    <target name="clean" description="clean up">
+        <delete dir="${build}"/>
+    </target>
+</project>

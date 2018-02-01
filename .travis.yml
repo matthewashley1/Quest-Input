@@ -1,41 +1,11 @@
-
 language: java
-
-matrix:
-  include:
-    ## https://docs.travis-ci.com/user/reference/trusty/
-    ## has newer Maven
-    - os: linux
-      sudo: false
-      dist: trusty
-      jdk: oraclejdk8
-      install: true
-      env: FAILURES_ALLOWED=false
-
-    ## OpenJDK should work too, but TravisCI has no up2date Ubuntu-Image, makes it impossible to install OpenJFX
-    - os: linux
-      sudo: false
-      dist: trusty
-      jdk: oraclejdk9
-      install: true
-      env: FAILURES_ALLOWED=false
-
-
-    ## OS X 10.11
-    - os: osx
-      osx_image: xcode8
-      env: FAILURES_ALLOWED=false
-    ## OS X 10.12
-    - os: osx
-      osx_image: xcode8.3
-      env: FAILURES_ALLOWED=false
-    ## OS X 10.12
-    - os: osx
-      osx_image: xcode9.2
-      env: FAILURES_ALLOWED=false
-
-  allow_failures:
-    - env: FAILURES_ALLOWED=true
+jdk:
+  - oraclejdk7
+  - oraclejdk8
+  - openjdk7
+  - openjdk6
+before_install:
+  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
 
 branches:
   only:

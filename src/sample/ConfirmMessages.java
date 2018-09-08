@@ -13,18 +13,16 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.net.URL;
 
-public class ConfirmMessages {
+class ConfirmMessages {
 
     private boolean answer; /* Variable for confirming if the program has been closed, used to store true if the program will be closed and false if the program won't be closed! */
 
-    /* Method to display when a error has occurred, is the default popup window for every error! */
-    public void infoEnteredError(String message, String example) {
+    /* Method to display when a error has occurred of form generation! */
+    void infoEnteredError(String message, String example) {
 
         URL warningImagePath = this.getClass().getResource("/sample/CustomerFiles/Images/Warning.png");
 
@@ -40,7 +38,7 @@ public class ConfirmMessages {
         warning.setFitHeight(100);
         warning.setFitWidth(100);
 
-        /* Label for Company information! */
+        /* Label for error messages! */
         Label errorMessage = new Label(message);
         errorMessage.setStyle("-fx-font: 18 arial; -fx-base: #3178ea;");
         errorMessage.setPadding(new Insets(10));
@@ -87,7 +85,7 @@ public class ConfirmMessages {
     }
 
     /* Method for close program acknowledge popup window! */
-    public boolean display(double primaryStageXPosition, double primaryStageYPosition, double primaryStageWidth, double primaryStageHeight) {
+    boolean display(String message, double primaryStageXPosition, double primaryStageYPosition, double primaryStageWidth, double primaryStageHeight) {
 
         Stage messageWindow = new Stage();
 
@@ -98,7 +96,7 @@ public class ConfirmMessages {
 
         /* Label is the past in parameter message from the closeProgram method in the Main class! */
         Label label = new Label();
-        label.setText("    Are you sure you want to close the program?    ");
+        label.setText(String.format("   Are you sure you want to close the %s?   ", message));
         label.setAlignment(Pos.BOTTOM_CENTER);
         label.setStyle("-fx-font: 14 arial; -fx-base: #FFFFFF;");
         label.setTextFill(Color.LIGHTGRAY);
@@ -173,89 +171,5 @@ public class ConfirmMessages {
 
         return answer;
     }
-
-    /* Method for closing estimate form acknowledge popup window! */
-    public boolean cancelAcknowledged(String formFilling, double primaryStageXPosition, double primaryStageYPosition, double primaryStageWidth, double primaryStageHeight) {
-
-        Stage messageWindow = new Stage();
-        
-        Label question, label;
-
-        messageWindow.initModality(Modality.APPLICATION_MODAL);
-        messageWindow.setTitle(formFilling);
-            
-        /* Label for consequences to user! */
-        label = new Label();
-        label.setText("    All progress will be lost!    ");
-        label.setAlignment(Pos.BOTTOM_CENTER);
-        label.setTextFill(Color.BLACK);
-        label.setFont(Font.font("Arial", FontWeight.SEMI_BOLD, 14));
-
-        /* Label for question to user! */
-        question = new Label("Are you sure you want to cancel this form?");
-        question.setPadding(new Insets(10));
-        question.setTextFill(Color.BLACK);
-        question.setFont(Font.font("Arial", FontWeight.SEMI_BOLD, 16));
-
-        /* Conditions for the Yes button! */
-        Button yesButton = new Button("Yes");
-        /* yesButton.setEffect(shadow);   possible shadow effect */
-        yesButton.setOnAction(e -> {
-            answer = true;
-            messageWindow.close();
-        });
-        yesButton.setStyle("-fx-font: 14 arial; -fx-base: #b4ffa3;");
-
-        /* Conditions for the Cancel button! */
-        Button noButton = new Button("Cancel");
-        /* noButton.setEffect(shadow);    possible shadow effect */
-        noButton.setOnAction(e -> {
-            answer = false;
-            messageWindow.close();
-        });
-        noButton.setStyle("-fx-font: 13 arial; -fx-base: #bfd2f2;");
-
-        /* Setup for the top of the VBox! */
-        StackPane top = new StackPane();
-        top.getChildren().add(question);
-        top.setMinHeight(35);
-
-        URL displayWarningImagePath = this.getClass().getResource("/sample/CustomerFiles/Images/Warning.png");
-
-        ImageView warning = new ImageView(new Image(String.valueOf(displayWarningImagePath)));
-        warning.setFitHeight(100);
-        warning.setFitWidth(100);
-
-        HBox center = new HBox(4);
-        center.getChildren().addAll(warning, label);
-        center.setMinHeight(25);
-        center.setPadding(new Insets(10));
-
-        /* Setup for the center of the VBox! */
-        HBox bottom = new HBox(8);
-        bottom.setPadding(new Insets(5));
-        bottom.getChildren().addAll(noButton, yesButton);
-        bottom.setAlignment(Pos.BOTTOM_RIGHT);
-        bottom.setMinHeight(65);
-
-        /* Setup for the BorderPane and the locations of the different layouts used in the BorderPane! */
-        BorderPane layout = new BorderPane();
-        layout.setTop(top);
-        layout.setLeft(center);
-        layout.setBottom(bottom);
-        layout.setStyle("-fx-background-color: linear-gradient(from 25% 25% to 100% 100%, #9b9ea3, #ffffff)");
-
-        Scene scene = new Scene(layout);
-        messageWindow.setScene(scene);
-        messageWindow.setResizable(false);
-
-        messageWindow.heightProperty().addListener(observable -> messageWindow.setY(((primaryStageHeight - messageWindow.getHeight()) / 2d) + primaryStageYPosition));
-        messageWindow.widthProperty().addListener(observable -> messageWindow.setX(((primaryStageWidth - messageWindow.getWidth()) / 2d) + primaryStageXPosition));
-        messageWindow.showAndWait();
-
-        return answer;
-    }
-
-
 
 } /* Closing bracket for ConfirmMessages class! */
